@@ -1,0 +1,297 @@
+(* Content-type: application/vnd.wolfram.mathematica *)
+
+(*** Wolfram Notebook File ***)
+(* http://www.wolfram.com/nb *)
+
+(* CreatedBy='Mathematica 9.0' *)
+
+(*CacheID: 234*)
+(* Internal cache information:
+NotebookFileLineBreakTest
+NotebookFileLineBreakTest
+NotebookDataPosition[       157,          7]
+NotebookDataLength[      9313,        288]
+NotebookOptionsPosition[      8547,        260]
+NotebookOutlinePosition[      8936,        277]
+CellTagsIndexPosition[      8893,        274]
+WindowFrame->Normal*)
+
+(* Beginning of Notebook Content *)
+Notebook[{
+
+Cell[CellGroupData[{
+Cell["Test of the distribution for \[Phi]", "Subsection",
+ CellGroupingRules->{GroupTogetherGrouping, 10000.},
+ CellChangeTimes->{{3.659902441669286*^9, 3.659902481763262*^9}, {
+  3.6599025352401667`*^9, 3.6599025370501328`*^9}}],
+
+Cell[BoxData[{
+ RowBox[{
+  RowBox[{
+  "SetDirectory", "[", "\"\<~/Projects/Paths/repo-alb/main/output\>\"", "]"}],
+   ";"}], "\[IndentingNewLine]", 
+ RowBox[{
+  RowBox[{"phis", "=", 
+   RowBox[{"Import", "[", "\"\<phis.dat\>\"", "]"}]}], 
+  ";"}], "\[IndentingNewLine]", 
+ RowBox[{
+  RowBox[{"R", "=", "1"}], ";"}], "\[IndentingNewLine]", 
+ RowBox[{
+  RowBox[{"m", "=", 
+   RowBox[{
+    RowBox[{"phis", "[", 
+     RowBox[{"[", "1", "]"}], "]"}], "[", 
+    RowBox[{"[", "1", "]"}], "]"}]}], ";"}], "\[IndentingNewLine]", 
+ RowBox[{
+  RowBox[{"\[Lambda]", "=", 
+   RowBox[{
+    RowBox[{"phis", "[", 
+     RowBox[{"[", "1", "]"}], "]"}], "[", 
+    RowBox[{"[", "2", "]"}], "]"}]}], ";"}], "\[IndentingNewLine]", 
+ RowBox[{
+  RowBox[{"rho", " ", "=", " ", 
+   RowBox[{
+    RowBox[{"phis", "[", 
+     RowBox[{"[", "1", "]"}], "]"}], "[", 
+    RowBox[{"[", "3", "]"}], "]"}]}], ";"}], "\[IndentingNewLine]", 
+ RowBox[{
+  RowBox[{"c", " ", "=", " ", 
+   RowBox[{"Sqrt", "[", 
+    RowBox[{
+     SuperscriptBox["m", "2"], "-", 
+     SuperscriptBox["\[Lambda]", "2"]}], "]"}]}], 
+  ";"}], "\[IndentingNewLine]", 
+ RowBox[{
+  RowBox[{"phis", "=", 
+   RowBox[{"Flatten", "[", 
+    RowBox[{"Delete", "[", 
+     RowBox[{"phis", ",", "1"}], "]"}], "]"}]}], ";"}], "\[IndentingNewLine]", 
+ RowBox[{
+  RowBox[{"histophi", "=", 
+   RowBox[{"Histogram", "[", 
+    RowBox[{"phis", ",", "100", ",", "\"\<PDF\>\""}], "]"}]}], 
+  ";"}], "\[IndentingNewLine]", 
+ RowBox[{
+  RowBox[{"B", " ", "=", " ", 
+   RowBox[{
+    RowBox[{"Sqrt", "[", 
+     RowBox[{
+      SuperscriptBox["R", "2"], "-", 
+      RowBox[{
+       SuperscriptBox["rho", "2"], 
+       SuperscriptBox[
+        RowBox[{"Sin", "[", "phi", "]"}], "2"]}]}], "]"}], "-", 
+    RowBox[{"rho", "*", 
+     RowBox[{"Cos", "[", "phi", "]"}]}]}]}], ";"}], "\[IndentingNewLine]", 
+ RowBox[{
+  RowBox[{"plotphi", "=", 
+   RowBox[{"Plot", "[", 
+    RowBox[{
+     RowBox[{
+      FractionBox["1", 
+       RowBox[{"2", "\[Pi]"}]], 
+      FractionBox[
+       RowBox[{"1", "-", " ", 
+        RowBox[{"c", " ", "B", " ", 
+         RowBox[{"BesselK", "[", 
+          RowBox[{"1", ",", 
+           RowBox[{"c", " ", "B"}]}], "]"}]}]}], 
+       RowBox[{"1", "-", 
+        RowBox[{"c", " ", "R", " ", 
+         RowBox[{"BesselI", "[", 
+          RowBox[{"0", ",", 
+           RowBox[{"rho", " ", "c"}]}], "]"}], 
+         RowBox[{"BesselK", "[", 
+          RowBox[{"1", ",", 
+           RowBox[{"R", " ", "c"}]}], "]"}]}]}]]}], ",", 
+     RowBox[{"{", 
+      RowBox[{"phi", ",", 
+       RowBox[{"Min", "[", "phis", "]"}], ",", 
+       RowBox[{"Max", "[", "phis", "]"}]}], "}"}]}], "]"}]}], 
+  ";"}], "\[IndentingNewLine]", 
+ RowBox[{"Show", "[", 
+  RowBox[{"{", 
+   RowBox[{"histophi", ",", "plotphi"}], "}"}], "]"}]}], "Input",
+ CellGroupingRules->{GroupTogetherGrouping, 10000.},
+ CellChangeTimes->{{3.6597926480555696`*^9, 3.659792726444805*^9}, {
+   3.659792768974639*^9, 3.659792770135433*^9}, {3.6597929008777647`*^9, 
+   3.659793108644896*^9}, {3.659793168694655*^9, 3.6597931942563562`*^9}, {
+   3.659900326271047*^9, 3.659900349602944*^9}, {3.6599006635256968`*^9, 
+   3.659900664447921*^9}, {3.65990070864161*^9, 3.659900959686913*^9}, {
+   3.659901395152616*^9, 3.659901435586133*^9}, {3.659901473892043*^9, 
+   3.659901474623795*^9}, 3.659902481763372*^9}]
+}, Open  ]],
+
+Cell[BoxData[""], "Input",
+ CellChangeTimes->{{3.65990251062668*^9, 3.659902524068375*^9}}],
+
+Cell[CellGroupData[{
+
+Cell["Test of the distribution for \[Xi]", "Subsection",
+ CellGroupingRules->{GroupTogetherGrouping, 10000.},
+ CellChangeTimes->{{3.659902441669286*^9, 3.659902481763262*^9}, {
+  3.6599025297556257`*^9, 3.6599025325386972`*^9}}],
+
+Cell[BoxData[{
+ RowBox[{
+  RowBox[{
+  "SetDirectory", "[", "\"\<~/Projects/Paths/repo-alb/main/output\>\"", "]"}],
+   ";"}], "\[IndentingNewLine]", 
+ RowBox[{
+  RowBox[{"xis", "=", 
+   RowBox[{"Import", "[", "\"\<xis.dat\>\"", "]"}]}], 
+  ";"}], "\[IndentingNewLine]", 
+ RowBox[{
+  RowBox[{"R", "=", "1"}], ";"}], "\[IndentingNewLine]", 
+ RowBox[{
+  RowBox[{"m", "=", 
+   RowBox[{
+    RowBox[{"xis", "[", 
+     RowBox[{"[", "1", "]"}], "]"}], "[", 
+    RowBox[{"[", "1", "]"}], "]"}]}], ";"}], "\[IndentingNewLine]", 
+ RowBox[{
+  RowBox[{"\[Lambda]", "=", 
+   RowBox[{
+    RowBox[{"xis", "[", 
+     RowBox[{"[", "1", "]"}], "]"}], "[", 
+    RowBox[{"[", "2", "]"}], "]"}]}], ";"}], "\[IndentingNewLine]", 
+ RowBox[{
+  RowBox[{"rho", " ", "=", " ", 
+   RowBox[{
+    RowBox[{"xis", "[", 
+     RowBox[{"[", "1", "]"}], "]"}], "[", 
+    RowBox[{"[", "3", "]"}], "]"}]}], ";"}], "\[IndentingNewLine]", 
+ RowBox[{
+  RowBox[{"phi", " ", "=", " ", 
+   RowBox[{
+    RowBox[{"xis", "[", 
+     RowBox[{"[", "1", "]"}], "]"}], "[", 
+    RowBox[{"[", "4", "]"}], "]"}]}], ";"}], "\[IndentingNewLine]", 
+ RowBox[{
+  RowBox[{"c", " ", "=", " ", 
+   RowBox[{"Sqrt", "[", 
+    RowBox[{
+     SuperscriptBox["m", "2"], "-", 
+     SuperscriptBox["\[Lambda]", "2"]}], "]"}]}], 
+  ";"}], "\[IndentingNewLine]", 
+ RowBox[{
+  RowBox[{"xis", "=", 
+   RowBox[{"Flatten", "[", 
+    RowBox[{"Delete", "[", 
+     RowBox[{"xis", ",", "1"}], "]"}], "]"}]}], 
+  ";"}], "\[IndentingNewLine]", 
+ RowBox[{
+  RowBox[{"histoxi", "=", 
+   RowBox[{"Histogram", "[", 
+    RowBox[{"xis", ",", "100", ",", "\"\<PDF\>\""}], "]"}]}], 
+  ";"}], "\[IndentingNewLine]", 
+ RowBox[{
+  RowBox[{"B", " ", "=", " ", 
+   RowBox[{
+    RowBox[{"Sqrt", "[", 
+     RowBox[{
+      SuperscriptBox["R", "2"], "-", 
+      RowBox[{
+       SuperscriptBox["rho", "2"], 
+       SuperscriptBox[
+        RowBox[{"Sin", "[", "phi", "]"}], "2"]}]}], "]"}], "-", 
+    RowBox[{"rho", "*", 
+     RowBox[{"Cos", "[", "phi", "]"}]}]}]}], ";"}], "\[IndentingNewLine]", 
+ RowBox[{
+  RowBox[{"plotxi", "=", 
+   RowBox[{"Plot", "[", 
+    RowBox[{
+     RowBox[{
+      FractionBox[
+       RowBox[{"1", "-", 
+        RowBox[{
+         RowBox[{"(", 
+          RowBox[{"1", "+", 
+           RowBox[{
+            RowBox[{"(", 
+             RowBox[{"m", "-", 
+              RowBox[{"\[Lambda]", " ", "xi"}]}], ")"}], "*", 
+            RowBox[{"(", 
+             RowBox[{"B", "/", 
+              RowBox[{"Sqrt", "[", 
+               RowBox[{"1", "-", 
+                SuperscriptBox["xi", "2"]}], "]"}]}], ")"}]}]}], ")"}], "*", 
+         RowBox[{"Exp", "[", 
+          RowBox[{
+           RowBox[{"-", 
+            RowBox[{"(", 
+             RowBox[{"m", "-", 
+              RowBox[{"\[Lambda]", " ", "xi"}]}], ")"}]}], "*", 
+           RowBox[{"(", 
+            RowBox[{"B", "/", 
+             RowBox[{"Sqrt", "[", 
+              RowBox[{"1", "-", 
+               SuperscriptBox["xi", "2"]}], "]"}]}], ")"}]}], "]"}]}]}], 
+       RowBox[{
+        SuperscriptBox[
+         RowBox[{"(", 
+          RowBox[{"m", "-", 
+           RowBox[{"\[Lambda]", " ", "xi"}]}], ")"}], "2"], 
+        FractionBox["2", 
+         SuperscriptBox["c", "2"]], "*", 
+        RowBox[{"(", 
+         RowBox[{"1", "-", 
+          RowBox[{"B", "*", "c", "*", 
+           RowBox[{"BesselK", "[", 
+            RowBox[{"1", ",", 
+             RowBox[{"B", "*", "c"}]}], "]"}]}]}], ")"}]}]], "//", "N"}], ",", 
+     RowBox[{"{", 
+      RowBox[{"xi", ",", 
+       RowBox[{"Min", "[", "xis", "]"}], ",", 
+       RowBox[{"Max", "[", "xis", "]"}]}], "}"}]}], "]"}]}], 
+  ";"}], "\[IndentingNewLine]", 
+ RowBox[{"Show", "[", 
+  RowBox[{"{", 
+   RowBox[{"histoxi", ",", "plotxi"}], "}"}], "]"}]}], "Input",
+ CellGroupingRules->{GroupTogetherGrouping, 10000.},
+ CellChangeTimes->{{3.659901805871263*^9, 3.659901852428125*^9}, {
+   3.659901957923764*^9, 3.659902010448152*^9}, {3.659902096681319*^9, 
+   3.6599021139767437`*^9}, {3.659902210279682*^9, 3.6599022367759447`*^9}, 
+   3.659902481763454*^9}]
+}, Open  ]],
+
+Cell[BoxData[""], "Input",
+ CellChangeTimes->{{3.65990255561545*^9, 3.659902567923759*^9}}]
+},
+CellGrouping->Manual,
+WindowSize->{1219, 875},
+WindowMargins->{{148, Automatic}, {Automatic, 0}},
+Magnification:>1.5 Inherited,
+FrontEndVersion->"9.0 for Linux x86 (64-bit) (February 7, 2013)",
+StyleDefinitions->"Default.nb"
+]
+(* End of Notebook Content *)
+
+(* Internal cache information *)
+(*CellTagsOutline
+CellTagsIndex->{}
+*)
+(*CellTagsIndex
+CellTagsIndex->{}
+*)
+(*NotebookFileOutline
+Notebook[{
+Cell[CellGroupData[{
+Cell[579, 22, 229, 3, 65, "Subsection",
+ CellGroupingRules->{GroupTogetherGrouping, 10000.}],
+Cell[811, 27, 3284, 94, 459, "Input",
+ CellGroupingRules->{GroupTogetherGrouping, 10000.}]
+}, Open  ]],
+Cell[4110, 124, 91, 1, 45, "Input"],
+Cell[CellGroupData[{
+Cell[4226, 129, 228, 3, 65, "Subsection",
+ CellGroupingRules->{GroupTogetherGrouping, 10000.}],
+Cell[4457, 134, 3980, 120, 547, "Input",
+ CellGroupingRules->{GroupTogetherGrouping, 10000.}]
+}, Open  ]],
+Cell[8452, 257, 91, 1, 45, "Input"]
+}
+]
+*)
+
+(* End of internal cache information *)

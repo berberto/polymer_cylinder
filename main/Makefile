@@ -19,7 +19,7 @@ all: rmxeq mkdep mkxeq rmpmk
 
 # main programs and required modules 
 
-MAIN = halfstrip # infstrip
+MAIN = cylinder # halfstrip infstrip
 
 RANDOM = ranlxs ranlxd  gauss
 # expo rootexpo gaussalt symexpo symrootexpo
@@ -51,20 +51,19 @@ VPATH = $(MDIR)/random:$(MDIR)/start:$(MDIR)/extras:$(MDIR)/integration:$(MDIR)/
 
 # additional include directories
 
-INCPATH = ../include  /usr/include  /usr/include/igraph  /usr/local/include/igraph
+INCPATH = ../include  /usr/include /usr/include/gsl  /usr/include/igraph  /usr/local/include/igraph
 
 
 # additional libraries to be included 
 
-LIBS = m  igraph # gsl
+LIBS = m  gsl  # igraph
 
 LIBPATH = 
 
 
 # scheduling and optimization options (such as -DSSE -DSSE2 -DP4)
  
-CFLAGS = -lm -O -std=gnu99 -g -DSSE2
- # -Wall
+CFLAGS = -lm -lgsl -lcblas -lgslcblas -O -std=gnu99 -g -DSSE2 -Wall
  
 
 ############################## do not change ###################################
