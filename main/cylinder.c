@@ -214,9 +214,9 @@ int main (int argc, char *argv[]){
 	fprintf(out_phis, "%lf\t%lf\t%lf\n", m, lambda, sqrt(x*x + y*y)); */
 	
 	/* UNCOMMENT TO TEST DISTRIBUTION FOR XI */
-	phi = pi/4.;
+	/* phi = pi/4.;
 	out_xis  = fopen("output/xis.dat", "w");
-	fprintf(out_xis, "%lf\t%lf\t%lf\t%lf\n", m, lambda, sqrt(x*x + y*y), phi);
+	fprintf(out_xis, "%lf\t%lf\t%lf\t%lf\n", m, lambda, sqrt(x*x + y*y), phi); */
 	
 	while(counter<Njumps){
 	
@@ -231,7 +231,7 @@ int main (int argc, char *argv[]){
 		/*
 		 *	Generation of phi and xi with the inversion method (numerically)
 		 */
-		/* phi	= cdfInversion(pdfPhi, minPhi, u[0], 1.0e-4); */
+		phi	= cdfInversion(pdfPhi, minPhi, u[0], 1.0e-4);
 		/* UNCOMMENT TO TEST DISTRIBUTION FOR PHI */
 		/* fprintf(out_phis, "%lf\n", phi);
 		counter++;
@@ -239,10 +239,10 @@ int main (int argc, char *argv[]){
 		
 		xi	= cdfInversion(pdfXi, minXi, u[1], 1.0e-5);
 		/* UNCOMMENT TO TEST DISTRIBUTION FOR XI */
-		fprintf(out_xis, "%lf\n", xi);
+		/* fprintf(out_xis, "%lf\n", xi);
 		fflush(out_xis);
 		counter++;
-		continue;
+		continue; */
 				
 		/*
 		 *	Generation of r with inversion method via Lambert W function
@@ -274,8 +274,9 @@ int main (int argc, char *argv[]){
 		}
 	}
 	
-	/*fclose(out_phis);*/
-	fclose(out_xis);
+	/* fclose(out_phis);*/
+	/* fclose(out_xis); */
+	fclose(out_rhos);
 	fclose(out_traj);
 	
 	exit(EXIT_SUCCESS);
