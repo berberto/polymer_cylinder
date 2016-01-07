@@ -196,15 +196,13 @@ int main (int argc, char *argv[]){
 	out_name = malloc(100*sizeof(char));
 	sprintf(out_name, "output/cylinder_%2.3lf.dat", atof(argv[1]));
 
-	out_rhos = fopen("output/rhos.dat", "w");	
-/*	out_phis = fopen("output/phis.dat", "w"); */
-/*	out_xis  = fopen("output/xis.dat", "w"); */
+	out_rhos = fopen("output/rhos.dat", "w");
 	out_traj = fopen(out_name,"w");
 	
 	/*
 	 *	Set initial point of the trajectory
 	 */
-	x0 = 0.8;
+	x0 = 0.;
 	y0 = 0.;
 	z0 = 0.;
 	counter=0;
@@ -212,13 +210,17 @@ int main (int argc, char *argv[]){
 	x = x0; y=y0; z=z0;
 
 	/* UNCOMMENT TO TEST DISTRIBUTION FOR PHI */
-	/* fprintf(out_phis, "%lf\t%lf\t%lf\t%lf\n", m, lambda, sqrt(x*x + y*y)); */
+	/* out_phis = fopen("output/phis.dat", "w");
+	fprintf(out_phis, "%lf\t%lf\t%lf\n", m, lambda, sqrt(x*x + y*y)); */
 	
 	/* UNCOMMENT TO TEST DISTRIBUTION FOR XI */
 	/* phi = pi/4.;
+	out_xis  = fopen("output/xis.dat", "w");
 	fprintf(out_xis, "%lf\t%lf\t%lf\t%lf\n", m, lambda, sqrt(x*x + y*y), phi); */
 	
 	while(counter<Njumps){
+	
+		if(counter%100==0) printf("%d\n",counter);
 		
 		rho = sqrt(x*x + y*y);
 		fprintf(out_rhos, "%d\t%lf\n", counter, rho);
@@ -231,13 +233,14 @@ int main (int argc, char *argv[]){
 		 */
 		phi	= cdfInversion(pdfPhi, minPhi, u[0], 1.0e-4);
 		/* UNCOMMENT TO TEST DISTRIBUTION FOR PHI */
-		/* fprintf(out_xis, "%lf\n", xi);
+		/* fprintf(out_phis, "%lf\n", phi);
 		counter++;
 		continue; */
 		
-		xi	= cdfInversion(pdfXi, minXi, u[1], 1.0e-6);
+		xi	= cdfInversion(pdfXi, minXi, u[1], 1.0e-5);
 		/* UNCOMMENT TO TEST DISTRIBUTION FOR XI */
 		/* fprintf(out_xis, "%lf\n", xi);
+		fflush(out_xis);
 		counter++;
 		continue; */
 				
@@ -251,9 +254,6 @@ int main (int argc, char *argv[]){
 			arstar = alpha*B(phi)/sqrt(1. - xi*xi);
 			beta = 1. - (1. + arstar)*exp(-arstar);
 		}
-		
-		/* printf("%lf\t%lf\n", xi, (beta*u[2] - 1.)*exp(-1.) );
-		fflush(stdout); */
 		r = (-gsl_sf_lambert_Wm1((beta*u[2] - 1.)*exp(-1.)) - 1.)/alpha;
 		
 		/*
@@ -274,8 +274,9 @@ int main (int argc, char *argv[]){
 		}
 	}
 	
-/*	fclose(out_phis); */
-/*	fclose(out_xis); */
+	/* fclose(out_phis);*/
+	/* fclose(out_xis); */
+	fclose(out_rhos);
 	fclose(out_traj);
 	
 	exit(EXIT_SUCCESS);
