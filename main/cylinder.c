@@ -13,7 +13,6 @@
 
 double pi = 4.0*atan(1.);
 
-int Njumps = 1000;
 double R = 1.;
 double m, lambda, srml; /* srml = sqrt(m^2 - lambda^2) */
 double lambdaextr[2];	/* lower and upper bound for lambda */
@@ -100,6 +99,14 @@ double pdfXi (double xi){
 
 
 /*
+ *	Stationary distribution for rho
+ */
+double pdfRho (double r) {
+	return lambda * r * gsl_sf_bessel_J0(lambda*r) / (R * gsl_sf_bessel_J1(lambda*R));
+}
+
+
+/*
  *	Inversion of the cumulative distribution function:
  *	it gives x such that cdf(x) = w.
  *	
@@ -143,25 +150,35 @@ double argument (double x, double y){
 }
 
 
-void printlambert (double a, double b, int npoints){
+/*
+ *	Print a real function of a real variable
+ */
+void printfunction (double (*func)(double), /* pointer to function to print */
+					double a, double b,		/* lower/upper extremes of domain */
+					int npoints,			/* number of points */
+					char *name) {			/* outout file */
 	double x, delta;
+	FILE *out;
+	out = fopen("w", name);
 	delta = (b - a)/npoints;
-	for(x=a; x<= b; x +=delta)
-		printf("%lf\t%lf\n", x, -gsl_sf_lambert_Wm1(-x));
+	for(x=a; x<= b; x +=delta)	fprintf(out, "%lf\t%lf\n", x, func(x));
+	fclose(out);
 }
 
 
-int main (int argc, char *argv[]){
+int main (int argc, char *argv[]) {
 	if(argc < 2){
-		printf("Set average jump length (in units of R)\n");
+		printf("Set average jump length (in units of R) and number of jumps\n");
 		exit(EXIT_SUCCESS);
 	}
 	
 	char *out_name;
-	FILE *out_traj, *out_phis, *out_xis, *out_rhos;
+	FILE *out_traj, *out_phis, *out_xis, *out_rhos, *out_deltazs, *out_ltzs;
 	
-	int counter, i;
-	double x0, y0, z0;
+	int Njumps, i;
+	int counter;
+	double x0, y0, z0, rho0, eta0;
+	double *ltz, smin, smax, deltas;
 	double x, y, z;
 	double xnew, ynew, znew, rhonew;
 	double alpha, beta, arstar, r;
@@ -175,16 +192,26 @@ int main (int argc, char *argv[]){
 	/*
 	 *	Set constants
 	 */
+	Njumps = atoi(argv[2]);
 	m = 2./R/atof(argv[1]);
 	lambdaextr[0] = 0.000001*m;
 	lambdaextr[1] = 2.41/R; 	/* first zero of J0, plus a bit */
 	if (m < lambdaextr[1]) lambdaextr[1] = m-.000001;
 	
-	lambda = Zbisection(funcforlambda, lambdaextr, .0001);
+	lambda = Zbisection(funcforlambda, lambdaextr, 1.e-6);
 	
 	srml = sqrt(m*m - lambda*lambda);
 	
 	printf("\nm=%lf\t\tlambda = %lf\n\n", m, lambda);
+	
+	/* Assignment variables for Laplace transform of pdf(deltaz|rho) */
+	smin = - .8*(sqrt(m*m + lambda*lambda) + lambda);
+	smax = .8*(sqrt(m*m + lambda*lambda) - lambda);
+	deltas = (smax - smin)/1000.;
+	ltz = malloc(1001*sizeof(double));
+	for (i=0; i<1001; i++)
+		ltz[i] = 0.;	/* Laplace transform evaluated at s_i = smin + i*deltas */
+	
 	
 	/* Set extremes for phi and xi = cos(theta) */
 	minPhi = -pi;
@@ -196,18 +223,27 @@ int main (int argc, char *argv[]){
 	out_name = malloc(100*sizeof(char));
 	sprintf(out_name, "output/cylinder_%2.3lf.dat", atof(argv[1]));
 
-	out_rhos = fopen("output/rhos.dat", "w");
+	out_deltazs = fopen("output/deltazs.dat", "w");
+	out_ltzs = fopen("output/ltzs.dat","w");
+	/* out_rhos = fopen("output/rhos.dat", "w"); */
 	out_traj = fopen(out_name,"w");
 	
 	/*
 	 *	Set initial point of the trajectory
 	 */
-	x0 = 0.;
+	ranlxd(u,1);
+	x0 = cdfInversion(pdfRho, 0., u[0], 1.e-6);
 	y0 = 0.;
 	z0 = 0.;
 	counter=0;
 	
-	x = x0; y=y0; z=z0;
+	x=x0; y=y0; z=z0;
+	/* rho0 = sqrt(x0*x0 + y0*y0);
+	eta0 = argument(x0, y0); */
+	
+	/* fprintf(out_rhos, "%lf\t%lf\t%lf\n", m, lambda, rho0); */
+	/* fprintf(out_deltazs, "%lf\t%lf\t%lf\n", m, lambda); */
+	fprintf(out_ltzs, "%lf\t%lf\t%lf\t%lf\n", m, lambda, smin, smax);
 
 	/* UNCOMMENT TO TEST DISTRIBUTION FOR PHI */
 	/* out_phis = fopen("output/phis.dat", "w");
@@ -218,15 +254,14 @@ int main (int argc, char *argv[]){
 	out_xis  = fopen("output/xis.dat", "w");
 	fprintf(out_xis, "%lf\t%lf\t%lf\t%lf\n", m, lambda, sqrt(x*x + y*y), phi); */
 	
+	
 	while(counter<Njumps){
-	
-		if(counter%100==0) printf("%d\n",counter);
 		
-		rho = sqrt(x*x + y*y);
-		fprintf(out_rhos, "%d\t%lf\n", counter, rho);
-		eta = argument(x,y);	
+		rho = sqrt(x*x + y*y); /* rho0; */
+		eta = argument(x,y); /* eta0; */
+		/* x=x0; y=y0; z=z0; */
 	
-		ranlxd(u, 4);
+		ranlxd(u, 4);	/* 4 random real numbers ~ U(0,1) */
 		
 		/*
 		 *	Generation of phi and xi with the inversion method (numerically)
@@ -238,19 +273,23 @@ int main (int argc, char *argv[]){
 		continue; */
 		
 		xi	= cdfInversion(pdfXi, minXi, u[1], 1.0e-5);
-		/* UNCOMMENT TO TEST DISTRIBUTION FOR XI */
+		/* UNCOMMENT TO TEST DISTRIBUTION FOR XI GIVEN PHI */
 		/* fprintf(out_xis, "%lf\n", xi);
 		fflush(out_xis);
 		counter++;
 		continue; */
-				
+		
 		/*
 		 *	Generation of r with inversion method via Lambert W function
 		 */
 		alpha = m - lambda*xi;
-		if (xi == 1. || xi == -1.)
+		if (xi >= 1.) {
+			xi = 1.; 
 			beta = 1.;
-		else {
+		} else if (xi <= -1.) {
+			xi = -1.;
+			beta = 1.;
+		} else {
 			arstar = alpha*B(phi)/sqrt(1. - xi*xi);
 			beta = 1. - (1. + arstar)*exp(-arstar);
 		}
@@ -269,15 +308,26 @@ int main (int argc, char *argv[]){
 		rhonew = sqrt(xnew*xnew + ynew*ynew);
 		if(u[3] <  gsl_sf_bessel_J0(lambda*rhonew)){
 			x=xnew; y=ynew; z=znew;
+			/* fprintf(out_rhos, "%lf\n", rhonew); */
+			/* fprintf(out_deltazs, "%lf\n", r*xi); */
 			counter++;
-			fprintf(out_traj, "%d\t%.5e\t%.5e\t%.5e\n", counter, x, y, z);
+			if(counter%1000==0) printf("%d\n",counter);
+			
+			for(i=0; i<1001; i++)
+				ltz[i] += exp((smin + i*deltas)*r*xi)/Njumps;
+			/* fprintf(out_traj, "%d\t%.5e\t%.5e\t%.5e\n", counter, x, y, z); */
 		}
 	}
 	
-	/* fclose(out_phis);*/
+	for(i=0; i<1001; i++)
+		fprintf(out_ltzs, "%lf\t%lf\n", smin + i*deltas, ltz[i]);
+	
+	/* fclose(out_phis); */
 	/* fclose(out_xis); */
-	fclose(out_rhos);
-	fclose(out_traj);
+	/* fclose(out_deltazs); */
+	fclose(out_ltzs);
+	/* fclose(out_rhos); */
+	/* fclose(out_traj); */
 	
 	exit(EXIT_SUCCESS);
 }

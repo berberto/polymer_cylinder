@@ -63,7 +63,7 @@ LIBPATH =
 
 # scheduling and optimization options (such as -DSSE -DSSE2 -DP4)
  
-CFLAGS = -lm -lgsl -lcblas -lgslcblas -O -std=gnu99 -g -DSSE2 -Wall
+CFLAGS = -lm -lgsl -lgslcblas -O -g -DSSE2 -Wall -std=gnu99  #-lcblas
  
 
 ############################## do not change ###################################
