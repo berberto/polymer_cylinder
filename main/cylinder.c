@@ -166,6 +166,14 @@ void printfunction (double (*func)(double), /* pointer to function to print */
 }
 
 
+
+
+/*******************************************************************************
+ *
+ *	MAIN ROUTINE
+ *
+ ******************************************************************************/
+ 
 int main (int argc, char *argv[]) {
 	if(argc < 2){
 		printf("Set average jump length (in units of R) and number of jumps\n");
@@ -173,12 +181,11 @@ int main (int argc, char *argv[]) {
 	}
 	
 	char *out_name;
-	FILE *out_traj, *out_phis, *out_xis, *out_rhos, *out_deltazs, *out_ltzs;
+	FILE *out_traj;
 	
 	int Njumps, i;
 	int counter;
 	double x0, y0, z0, rho0, eta0;
-	double *ltz, smin, smax, deltas;
 	double x, y, z;
 	double xnew, ynew, znew, rhonew;
 	double alpha, beta, arstar, r;
@@ -202,16 +209,7 @@ int main (int argc, char *argv[]) {
 	
 	srml = sqrt(m*m - lambda*lambda);
 	
-	printf("\nm=%lf\t\tlambda = %lf\n\n", m, lambda);
-	
-	/* Assignment variables for Laplace transform of pdf(deltaz|rho) */
-	smin = - .8*(sqrt(m*m + lambda*lambda) + lambda);
-	smax = .8*(sqrt(m*m + lambda*lambda) - lambda);
-	deltas = (smax - smin)/1000.;
-	ltz = malloc(1001*sizeof(double));
-	for (i=0; i<1001; i++)
-		ltz[i] = 0.;	/* Laplace transform evaluated at s_i = smin + i*deltas */
-	
+	/* printf("\nm=%lf\t\tlambda = %lf\n\n", m, lambda); */	
 	
 	/* Set extremes for phi and xi = cos(theta) */
 	minPhi = -pi;
@@ -221,113 +219,73 @@ int main (int argc, char *argv[]) {
 	 *	Open output files
 	 */
 	out_name = malloc(100*sizeof(char));
-	sprintf(out_name, "output/cylinder_%2.3lf.dat", atof(argv[1]));
+	sprintf(out_name, "output/cylinder_%2.2lf.dat", atof(argv[1]));
 
-	out_deltazs = fopen("output/deltazs.dat", "w");
-	out_ltzs = fopen("output/ltzs.dat","w");
-	/* out_rhos = fopen("output/rhos.dat", "w"); */
 	out_traj = fopen(out_name,"w");
 	
-	/*
-	 *	Set initial point of the trajectory
-	 */
-	ranlxd(u,1);
-	x0 = cdfInversion(pdfRho, 0., u[0], 1.e-6);
-	y0 = 0.;
-	z0 = 0.;
-	counter=0;
+	for(i=0; i<reps; i++) {
+		/*
+		 *	Set initial point of the trajectory
+		 */
+		ranlxd(u,2);
+		rho0 = cdfInversion(pdfRho, 0., u[0], 1.e-6);
+		eta0 = 2.*pi*(u[1]-.5);
+		x0 = rho0*cos(eta0);
+		y0 = rho0*sin(eta0);
+		z0 = 0.;
 	
-	x=x0; y=y0; z=z0;
-	/* rho0 = sqrt(x0*x0 + y0*y0);
-	eta0 = argument(x0, y0); */
-	
-	/* fprintf(out_rhos, "%lf\t%lf\t%lf\n", m, lambda, rho0); */
-	/* fprintf(out_deltazs, "%lf\t%lf\t%lf\n", m, lambda); */
-	fprintf(out_ltzs, "%lf\t%lf\t%lf\t%lf\n", m, lambda, smin, smax);
+		x=x0; y=y0; z=z0;	
 
-	/* UNCOMMENT TO TEST DISTRIBUTION FOR PHI */
-	/* out_phis = fopen("output/phis.dat", "w");
-	fprintf(out_phis, "%lf\t%lf\t%lf\n", m, lambda, sqrt(x*x + y*y)); */
+		counter=0;
+		while(counter<Njumps){
+		
+			rho = sqrt(x*x + y*y);
+			eta = argument(x,y);
 	
-	/* UNCOMMENT TO TEST DISTRIBUTION FOR XI */
-	/* phi = pi/4.;
-	out_xis  = fopen("output/xis.dat", "w");
-	fprintf(out_xis, "%lf\t%lf\t%lf\t%lf\n", m, lambda, sqrt(x*x + y*y), phi); */
-	
-	
-	while(counter<Njumps){
+			ranlxd(u, 4);	/* 4 random real numbers ~ U(0,1) */
 		
-		rho = sqrt(x*x + y*y); /* rho0; */
-		eta = argument(x,y); /* eta0; */
-		/* x=x0; y=y0; z=z0; */
-	
-		ranlxd(u, 4);	/* 4 random real numbers ~ U(0,1) */
+			/*
+			 *	Generation of phi and xi with the inversion method (numerically)
+			 */
+			phi	= cdfInversion(pdfPhi, minPhi, u[0], 1.0e-4);
+			xi	= cdfInversion(pdfXi, minXi, u[1], 1.0e-5);
 		
-		/*
-		 *	Generation of phi and xi with the inversion method (numerically)
-		 */
-		phi	= cdfInversion(pdfPhi, minPhi, u[0], 1.0e-4);
-		/* UNCOMMENT TO TEST DISTRIBUTION FOR PHI */
-		/* fprintf(out_phis, "%lf\n", phi);
-		counter++;
-		continue; */
+			/*
+			 *	Generation of r with inversion method via Lambert W function
+			 */
+			alpha = m - lambda*xi;
+			if (xi >= 1.) {
+				xi = 1.; 
+				beta = 1.;
+			} else if (xi <= -1.) {
+				xi = -1.;
+				beta = 1.;
+			} else {
+				arstar = alpha*B(phi)/sqrt(1. - xi*xi);
+				beta = 1. - (1. + arstar)*exp(-arstar);
+			}
+			r = (-gsl_sf_lambert_Wm1((beta*u[2] - 1.)*exp(-1.)) - 1.)/alpha;
 		
-		xi	= cdfInversion(pdfXi, minXi, u[1], 1.0e-5);
-		/* UNCOMMENT TO TEST DISTRIBUTION FOR XI GIVEN PHI */
-		/* fprintf(out_xis, "%lf\n", xi);
-		fflush(out_xis);
-		counter++;
-		continue; */
+			/*
+			 *	Definition of x'
+			 */
+			xnew = x + r*sqrt(1-xi*xi)*cos(phi);
+			ynew = y + r*sqrt(1-xi*xi)*sin(phi);
+			znew = z + r*xi;
 		
-		/*
-		 *	Generation of r with inversion method via Lambert W function
-		 */
-		alpha = m - lambda*xi;
-		if (xi >= 1.) {
-			xi = 1.; 
-			beta = 1.;
-		} else if (xi <= -1.) {
-			xi = -1.;
-			beta = 1.;
-		} else {
-			arstar = alpha*B(phi)/sqrt(1. - xi*xi);
-			beta = 1. - (1. + arstar)*exp(-arstar);
-		}
-		r = (-gsl_sf_lambert_Wm1((beta*u[2] - 1.)*exp(-1.)) - 1.)/alpha;
-		
-		/*
-		 *	Definition of x'
-		 */
-		xnew = x + r*sqrt(1-xi*xi)*cos(phi);
-		ynew = y + r*sqrt(1-xi*xi)*sin(phi);
-		znew = z + r*xi;
-		
-		/*
-		 *	Rejection sampling
-		 */
-		rhonew = sqrt(xnew*xnew + ynew*ynew);
-		if(u[3] <  gsl_sf_bessel_J0(lambda*rhonew)){
-			x=xnew; y=ynew; z=znew;
-			/* fprintf(out_rhos, "%lf\n", rhonew); */
-			/* fprintf(out_deltazs, "%lf\n", r*xi); */
-			counter++;
-			if(counter%1000==0) printf("%d\n",counter);
-			
-			for(i=0; i<1001; i++)
-				ltz[i] += exp((smin + i*deltas)*r*xi)/Njumps;
-			/* fprintf(out_traj, "%d\t%.5e\t%.5e\t%.5e\n", counter, x, y, z); */
+			/*
+			 *	Rejection sampling
+			 */
+			rhonew = sqrt(xnew*xnew + ynew*ynew);
+			if(u[3] <  gsl_sf_bessel_J0(lambda*rhonew)){
+				x=xnew; y=ynew; z=znew;
+				counter++;			
+				fprintf(out_traj, "%d\t%.5e\t%.5e\t%.5e\n", counter, x, y, z);
+			}
 		}
 	}
 	
-	for(i=0; i<1001; i++)
-		fprintf(out_ltzs, "%lf\t%lf\n", smin + i*deltas, ltz[i]);
-	
-	/* fclose(out_phis); */
-	/* fclose(out_xis); */
-	/* fclose(out_deltazs); */
-	fclose(out_ltzs);
-	/* fclose(out_rhos); */
-	/* fclose(out_traj); */
+	fclose(out_traj);
 	
 	exit(EXIT_SUCCESS);
 }
