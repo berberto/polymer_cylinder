@@ -1,5 +1,5 @@
-	devel/random/*.d
-	devel/random/*.o
+	*.d
+	*.o
 	doc/
 	include/integration.h
 	include/integration.h~
