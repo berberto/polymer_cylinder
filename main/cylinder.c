@@ -179,7 +179,10 @@ void printfunction (double (*func)(double), /* pointer to function to print */
  ******************************************************************************/
  
 int main (int argc, char *argv[]) {
-	if(argc < 2){
+
+  printf("%s\n",argv[3]);
+
+	if(argc < 3){
 		printf("Set average jump length (in units of R), number of jumps and realization counter\n");
 		exit(EXIT_SUCCESS);
 	}
@@ -303,5 +306,8 @@ int main (int argc, char *argv[]) {
 	
 	fclose(out_traj);
 	
+	printf("%s ended\n",argv[3]);
 	exit(EXIT_SUCCESS);
+
+	
 }

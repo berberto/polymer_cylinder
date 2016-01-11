@@ -6,13 +6,22 @@ import os
 def run(arg):
     #arg is a string with: dir-results, run number, seed
     
-    os.system('./cylinder' + arg)
+    os.system('./cylinder ' + arg)
 
     return(None)
 
-nreps=3
+
+
+
+
+
+
+os.system('make')
+
+
+nreps=10
 rep = range(nreps)
-Njumps = [10000]
+Njumps = [1000]
 avgjump = [0.1]
 
 
