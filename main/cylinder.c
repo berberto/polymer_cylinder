@@ -23,6 +23,10 @@ double minPhi;			/* minimum value of phi */
 double minXi;			/* minimum value of cos(theta) */
 
 
+typedef struct {
+	float x, y, z;
+} point;
+
 
 /*
  * Recursive auxiliary function for adaptiveSimpsons() function below
@@ -176,17 +180,18 @@ void printfunction (double (*func)(double), /* pointer to function to print */
  
 int main (int argc, char *argv[]) {
 	if(argc < 2){
-		printf("Set average jump length (in units of R) and number of jumps\n");
+		printf("Set average jump length (in units of R), number of jumps and realization counter\n");
 		exit(EXIT_SUCCESS);
 	}
 	
-	char *out_name;
+	char *out_name, *createdir, *dir;
 	FILE *out_traj;
 	
-	int Njumps, i;
+	int Njumps;
 	int counter;
 	double x0, y0, z0, rho0, eta0;
 	double x, y, z;
+	float **pts;
 	double xnew, ynew, znew, rhonew;
 	double alpha, beta, arstar, r;
 
@@ -203,11 +208,15 @@ int main (int argc, char *argv[]) {
 	m = 2./R/atof(argv[1]);
 	lambdaextr[0] = 0.000001*m;
 	lambdaextr[1] = 2.41/R; 	/* first zero of J0, plus a bit */
-	if (m < lambdaextr[1]) lambdaextr[1] = m-.000001;
-	
+	if (m < lambdaextr[1])
+		lambdaextr[1] = m-.000001;
 	lambda = Zbisection(funcforlambda, lambdaextr, 1.e-6);
-	
 	srml = sqrt(m*m - lambda*lambda);
+	
+	/* pts = malloc((Njumps)*sizeof(point)); */
+	pts = malloc((Njumps)*sizeof(long int));
+	for(counter=0; counter<Njumps; counter++)
+		pts[counter] = malloc(3*sizeof(float));
 	
 	/* printf("\nm=%lf\t\tlambda = %lf\n\n", m, lambda); */	
 	
@@ -219,71 +228,78 @@ int main (int argc, char *argv[]) {
 	 *	Open output files
 	 */
 	out_name = malloc(100*sizeof(char));
-	sprintf(out_name, "output/cylinder_%2.2lf.dat", atof(argv[1]));
+	dir = malloc(100*sizeof(char));
+	createdir = malloc(100*sizeof(char));
+	sprintf(dir, "output/avjmp_%2.2lf", atof(argv[1]));
+	sprintf(createdir, "mkdir -p %s", dir);
+	sprintf(out_name, "%s/rep_%d.dat", dir, atoi(argv[3]));
 
+	system(createdir);
 	out_traj = fopen(out_name,"w");
 	
-	for(i=0; i<reps; i++) {
-		/*
-		 *	Set initial point of the trajectory
-		 */
-		ranlxd(u,2);
-		rho0 = cdfInversion(pdfRho, 0., u[0], 1.e-6);
-		eta0 = 2.*pi*(u[1]-.5);
-		x0 = rho0*cos(eta0);
-		y0 = rho0*sin(eta0);
-		z0 = 0.;
-	
-		x=x0; y=y0; z=z0;	
+	/*
+	 *	Set initial point of the trajectory
+	 */
+	ranlxd(u,2);
+	rho0 = cdfInversion(pdfRho, 0., u[0], 1.e-6);
+	eta0 = 2.*pi*(u[1]-.5);
+	x0 = rho0*cos(eta0);
+	y0 = rho0*sin(eta0);
+	z0 = 0.;
 
-		counter=0;
-		while(counter<Njumps){
-		
-			rho = sqrt(x*x + y*y);
-			eta = argument(x,y);
+	x=x0; y=y0; z=z0;	
+
+	counter=0;
+	while(counter<Njumps) {
 	
-			ranlxd(u, 4);	/* 4 random real numbers ~ U(0,1) */
+		rho = sqrt(x*x + y*y);
+		eta = argument(x,y);
+
+		ranlxd(u, 4);	/* 4 random real numbers ~ U(0,1) */
+	
+		/*
+		 *	Generation of phi and xi with the inversion method (numerically)
+		 */
+		phi	= cdfInversion(pdfPhi, minPhi, u[0], 1.0e-4);
+		xi	= cdfInversion(pdfXi, minXi, u[1], 1.0e-5);
+	
+		/*
+		 *	Generation of r with inversion method via Lambert W function
+		 */
+		alpha = m - lambda*xi;
+		if (xi >= 1.) {
+			xi = 1.; 
+			beta = 1.;
+		} else if (xi <= -1.) {
+			xi = -1.;
+			beta = 1.;
+		} else {
+			arstar = alpha*B(phi)/sqrt(1. - xi*xi);
+			beta = 1. - (1. + arstar)*exp(-arstar);
+		}
+		r = (-gsl_sf_lambert_Wm1((beta*u[2] - 1.)*exp(-1.)) - 1.)/alpha;
 		
-			/*
-			 *	Generation of phi and xi with the inversion method (numerically)
-			 */
-			phi	= cdfInversion(pdfPhi, minPhi, u[0], 1.0e-4);
-			xi	= cdfInversion(pdfXi, minXi, u[1], 1.0e-5);
+		/*
+		 *	Definition of x'
+		 */
+		xnew = x + r*sqrt(1-xi*xi)*cos(phi);
+		ynew = y + r*sqrt(1-xi*xi)*sin(phi);
+		znew = z + r*xi;
 		
-			/*
-			 *	Generation of r with inversion method via Lambert W function
-			 */
-			alpha = m - lambda*xi;
-			if (xi >= 1.) {
-				xi = 1.; 
-				beta = 1.;
-			} else if (xi <= -1.) {
-				xi = -1.;
-				beta = 1.;
-			} else {
-				arstar = alpha*B(phi)/sqrt(1. - xi*xi);
-				beta = 1. - (1. + arstar)*exp(-arstar);
-			}
-			r = (-gsl_sf_lambert_Wm1((beta*u[2] - 1.)*exp(-1.)) - 1.)/alpha;
-		
-			/*
-			 *	Definition of x'
-			 */
-			xnew = x + r*sqrt(1-xi*xi)*cos(phi);
-			ynew = y + r*sqrt(1-xi*xi)*sin(phi);
-			znew = z + r*xi;
-		
-			/*
-			 *	Rejection sampling
-			 */
-			rhonew = sqrt(xnew*xnew + ynew*ynew);
-			if(u[3] <  gsl_sf_bessel_J0(lambda*rhonew)){
-				x=xnew; y=ynew; z=znew;
-				counter++;			
-				fprintf(out_traj, "%d\t%.5e\t%.5e\t%.5e\n", counter, x, y, z);
-			}
+		/*
+		 *	Rejection sampling
+		 */
+		rhonew = sqrt(xnew*xnew + ynew*ynew);
+		if(u[3] <  gsl_sf_bessel_J0(lambda*rhonew)){
+			x=xnew; y=ynew; z=znew;
+			pts[counter][0] = (float)x;
+			pts[counter][1] = (float)y;
+			pts[counter][2] = (float)z;
+			counter++;
 		}
 	}
+	for(counter=0; counter<Njumps; counter++)
+		fwrite(pts[counter], sizeof(float), 3, out_traj);
 	
 	fclose(out_traj);
 	
