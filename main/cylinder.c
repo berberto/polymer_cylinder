@@ -23,10 +23,6 @@ double minPhi;			/* minimum value of phi */
 double minXi;			/* minimum value of cos(theta) */
 
 
-typedef struct {
-	float x, y, z;
-} point;
-
 
 /*
  * Recursive auxiliary function for adaptiveSimpsons() function below
@@ -93,7 +89,7 @@ double pdfXi (double xi){
 	norm = 2./(m*m - lambda*lambda)*(1. - B(phi)*srml*gsl_sf_bessel_K1( B(phi)*srml));
 	alpha = m - lambda*xi;
 
-	if((xi == 1.)||(xi == -1.)) return 1./(alpha*alpha)/norm;
+	if((xi >= 1.)||(xi <= -1.)) return 1./(alpha*alpha)/norm;
 	
 	else{
 		arstar = alpha*B(phi)/sqrt(1. - xi*xi);
@@ -102,12 +98,14 @@ double pdfXi (double xi){
 }
 
 
+
 /*
  *	Stationary distribution for rho
  */
 double pdfRho (double r) {
 	return lambda * r * gsl_sf_bessel_J0(lambda*r) / (R * gsl_sf_bessel_J1(lambda*R));
 }
+
 
 
 /*
@@ -131,27 +129,29 @@ double cdfInversion (double (*pdf)(double), double minX, double w, double deltaX
 	while((cdfnew - w)*(cdf-w) > 0) {
 		i++;
 		cdf = cdfnew;
-		cdfnew += adaptiveSimpsons(pdf, minX + i*deltaX*100, minX + (i+1)*deltaX*100., .00001, maxrec);
+		cdfnew += adaptiveSimpsons(pdf, minX + i*deltaX*100, minX + (i+1)*deltaX*100., 1.e-9, maxrec);
 	}
 	j=-1;
 	startX = minX + i*deltaX;
 	while((cdfnew - w)*(cdf-w)>0) {
 		j++;
 		cdf = cdfnew;
-		cdfnew = cdf + adaptiveSimpsons(pdf, startX + j*deltaX, startX + (j+1)*deltaX, .00001, maxrec);
+		cdfnew = cdf + adaptiveSimpsons(pdf, startX + j*deltaX, startX + (j+1)*deltaX, 1.e-9, maxrec);
 	}
 	return minX + deltaX*(i*100. + (j - .5));
 }
 
 
+
 /*
- *	Angle of a vector (x,y) with respect to the x axis
+ *	Angle of a vector (x,y) with respect to the x axis (from -pi to pi)
  */
 double argument (double x, double y){
 	if (x*x + y*y == 0)	return 0;
 	
 	else return carg(x + I*y);
 }
+
 
 
 /*
@@ -163,7 +163,7 @@ void printfunction (double (*func)(double), /* pointer to function to print */
 					char *name) {			/* outout file */
 	double x, delta;
 	FILE *out;
-	out = fopen("w", name);
+	out = fopen(name, "w");
 	delta = (b - a)/npoints;
 	for(x=a; x<= b; x +=delta)	fprintf(out, "%lf\t%lf\n", x, func(x));
 	fclose(out);
@@ -212,11 +212,10 @@ int main (int argc, char *argv[]) {
 	lambdaextr[0] = 0.000001*m;
 	lambdaextr[1] = 2.41/R; 	/* first zero of J0, plus a bit */
 	if (m < lambdaextr[1])
-		lambdaextr[1] = m-.000001;
+		lambdaextr[1] = m - 1.e-10;
 	lambda = Zbisection(funcforlambda, lambdaextr, 1.e-6);
 	srml = sqrt(m*m - lambda*lambda);
 	
-	/* pts = malloc((Njumps)*sizeof(point)); */
 	pts = malloc((Njumps)*sizeof(long int));
 	for(counter=0; counter<Njumps; counter++)
 		pts[counter] = malloc(3*sizeof(float));
@@ -263,8 +262,8 @@ int main (int argc, char *argv[]) {
 		/*
 		 *	Generation of phi and xi with the inversion method (numerically)
 		 */
-		phi	= cdfInversion(pdfPhi, minPhi, u[0], 1.0e-4);
-		xi	= cdfInversion(pdfXi, minXi, u[1], 1.0e-5);
+		phi	= cdfInversion(pdfPhi, minPhi, u[0], 1.0e-5);
+		xi	= cdfInversion(pdfXi, -minXi, -u[1], -1.0e-7);
 	
 		/*
 		 *	Generation of r with inversion method via Lambert W function
