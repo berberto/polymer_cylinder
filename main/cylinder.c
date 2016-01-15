@@ -197,14 +197,13 @@ int main (int argc, char *argv[]) {
 	double xnew, ynew, znew, rhonew;
 	double alpha, beta, arstar, r;
 
-	double u[4]; /* 4 random numbers uniformly distributed in (0,1) */
+	double u[5]; /* 5 random numbers uniformly distributed in (0,1) */	
 	
 	/* Initialization of the randomizer */
-/*	srand(time(NULL));
-	rlxd_init(1,rand()); */
 	seed = atoi(argv[4]);
-	rlxd_init(1,seed);
-	
+	srand(seed);
+	rlxd_init(1,rand());
+
 	/*
 	 *	Set constants
 	 */
@@ -216,7 +215,7 @@ int main (int argc, char *argv[]) {
 		lambdaextr[1] = m - 1.e-10;
 	lambda = Zbisection(funcforlambda, lambdaextr, 1.e-6);
 	srml = sqrt(m*m - lambda*lambda);
-	
+	return 0;
 	pts = malloc((Njumps)*sizeof(long int));
 	for(counter=0; counter<Njumps; counter++)
 		pts[counter] = malloc(3*sizeof(float));
@@ -233,7 +232,7 @@ int main (int argc, char *argv[]) {
 	out_name = malloc(100*sizeof(char));
 	dir = malloc(100*sizeof(char));
 	createdir = malloc(100*sizeof(char));
-	sprintf(dir, "output/avjmp_%2.2lf", atof(argv[1]));
+	sprintf(dir, "output/avjmp_%.3lf", atof(argv[1]));
 	sprintf(createdir, "mkdir -p %s", dir);
 	sprintf(out_name, "%s/rep_%d.dat", dir, atoi(argv[3]));
 
@@ -255,7 +254,7 @@ int main (int argc, char *argv[]) {
 	z0 = 0.;
 
 	x=x0; y=y0; z=z0;	
-
+	
 	counter=0;
 	while(counter<Njumps) {
 	
@@ -319,7 +318,7 @@ int main (int argc, char *argv[]) {
 	
 	fclose(out_traj);
 	
-	printf("%s --> end\n",argv[3]);
+	printf("%s --> end\n",argv[3]); fflush(stdout);
 	exit(EXIT_SUCCESS);
 
 	
