@@ -16,11 +16,14 @@ double pi = 4.0*atan(1.);
 double R = 1.;
 double m, lambda, srml; /* srml = sqrt(m^2 - lambda^2) */
 double lambdaextr[2];	/* lower and upper bound for lambda */
+double rhoextr[2];		/* lower and upper bound for rho */
 double rho, eta;		/* coordinates in the transverse plane (cylindrical) */
 double phi, xi;			/* azimutal and (cosine of) zenithal angles for x'-x */
 int maxrec = 100;		/* maximum recursion depth */
 double minPhi;			/* minimum value of phi */
 double minXi;			/* minimum value of cos(theta) */
+double normPhi, normXi, normRho, b;	/* normalization constants */
+double w;
 
 
 
@@ -72,12 +75,11 @@ double B (double phi){
 }
 
 
-
 /*
  *  Distribution for the azimutal angle, phi
  */
 double pdfPhi (double phi){
-	return (.5/pi*(1. - B(phi)*srml*gsl_sf_bessel_K1( B(phi)*srml))/(1. - R*srml*gsl_sf_bessel_I0( rho*srml)*gsl_sf_bessel_K1( R*srml)));
+	return (1. - B(phi)*srml*gsl_sf_bessel_K1(B(phi)*srml))*normPhi;
 }
 
 
@@ -85,27 +87,42 @@ double pdfPhi (double phi){
  * Distribution for the (cosine of the) zenital angle, xi
  */
 double pdfXi (double xi){
-	double alpha, norm, arstar;
-	norm = 2./(m*m - lambda*lambda)*(1. - B(phi)*srml*gsl_sf_bessel_K1( B(phi)*srml));
+	double alpha, arstar;
 	alpha = m - lambda*xi;
 
-	if((xi >= 1.)||(xi <= -1.)) return 1./(alpha*alpha)/norm;
+	if((xi >= 1.)||(xi <= -1.)) return 1./(alpha*alpha)/normXi;
 	
 	else{
-		arstar = alpha*B(phi)/sqrt(1. - xi*xi);
-		return (1. - (1. + arstar)*exp(-arstar))/(alpha*alpha)/norm;
+		arstar = alpha*b/sqrt(1. - xi*xi);
+		return (1. - (1. + arstar)*exp(-arstar))/(alpha*alpha)/normXi;
 	}
 }
 
+
+/*
+ *	Distriburion of the Tanh(xi)
+ */
+double pdfAtanhXi (double u) {
+	double aux;
+	aux = b*srml*cosh(u);
+	return b*b*(1. - (1. + aux)*exp(-aux))/(aux*aux)/normXi;
+}
 
 
 /*
  *	Stationary distribution for rho
  */
 double pdfRho (double r) {
-	return lambda * r * gsl_sf_bessel_J0(lambda*r) / (R * gsl_sf_bessel_J1(lambda*R));
+	return lambda * r * gsl_sf_bessel_J0(lambda*r) / normRho;
 }
 
+
+/*
+ *	Function whose zero is the the rho sampled according its stationary distribution
+ */
+double funcforrho (double r) {
+	return (r * gsl_sf_bessel_J1(lambda*r)/normRho - w);
+}
 
 
 /*
@@ -118,7 +135,7 @@ double pdfRho (double r) {
  *	deltaX	: accuracy in the determination of x = X(w) = G^{-1}(w)
  *
  */
-double cdfInversion (double (*pdf)(double), double minX, double w, double deltaX) {
+double cdfInversion (double (*pdf)(double), double minX, double w, double deltaX_rough, double deltaX_fine) {
 	double cdf, cdfnew;
 	double startX;
 	int i, j;
@@ -129,18 +146,17 @@ double cdfInversion (double (*pdf)(double), double minX, double w, double deltaX
 	while((cdfnew - w)*(cdf-w) > 0) {
 		i++;
 		cdf = cdfnew;
-		cdfnew += adaptiveSimpsons(pdf, minX + i*deltaX*100, minX + (i+1)*deltaX*100., 1.e-9, maxrec);
+		cdfnew += adaptiveSimpsons(pdf, minX + i*deltaX_rough, minX + (i+1)*deltaX_rough, 1.e-8, maxrec);
 	}
 	j=-1;
-	startX = minX + i*deltaX;
+	startX = minX + i*deltaX_rough;
 	while((cdfnew - w)*(cdf-w)>0) {
 		j++;
 		cdf = cdfnew;
-		cdfnew = cdf + adaptiveSimpsons(pdf, startX + j*deltaX, startX + (j+1)*deltaX, 1.e-9, maxrec);
+		cdfnew = cdf + adaptiveSimpsons(pdf, startX + j*deltaX_fine, startX + (j+1)*deltaX_fine, 1.e-8, maxrec);
 	}
-	return minX + deltaX*(i*100. + (j - .5));
+	return minX + i*deltaX_rough + (j-.5)*deltaX_fine;
 }
-
 
 
 /*
@@ -154,24 +170,6 @@ double argument (double x, double y){
 
 
 
-/*
- *	Print a real function of a real variable
- */
-void printfunction (double (*func)(double), /* pointer to function to print */
-					double a, double b,		/* lower/upper extremes of domain */
-					int npoints,			/* number of points */
-					char *name) {			/* outout file */
-	double x, delta;
-	FILE *out;
-	out = fopen(name, "w");
-	delta = (b - a)/npoints;
-	for(x=a; x<= b; x +=delta)	fprintf(out, "%lf\t%lf\n", x, func(x));
-	fclose(out);
-}
-
-
-
-
 /*******************************************************************************
  *
  *	MAIN ROUTINE
@@ -180,9 +178,9 @@ void printfunction (double (*func)(double), /* pointer to function to print */
  
 int main (int argc, char *argv[]) {
 
-  printf("%s\n",argv[3]);
+  printf("%s --> start\n",argv[3]);
 
-	if(argc < 3){
+	if(argc < 5){
 		printf("Set average jump length (in units of R), number of jumps and realization counter\n");
 		exit(EXIT_SUCCESS);
 	}
@@ -190,6 +188,7 @@ int main (int argc, char *argv[]) {
 	char *out_name, *createdir, *dir;
 	FILE *out_traj;
 	
+	int seed;
 	int Njumps;
 	int counter;
 	double x0, y0, z0, rho0, eta0;
@@ -201,8 +200,10 @@ int main (int argc, char *argv[]) {
 	double u[4]; /* 4 random numbers uniformly distributed in (0,1) */
 	
 	/* Initialization of the randomizer */
-	srand(time(NULL));
-	rlxd_init(1,rand());
+/*	srand(time(NULL));
+	rlxd_init(1,rand()); */
+	seed = atoi(argv[4]);
+	rlxd_init(1,seed);
 	
 	/*
 	 *	Set constants
@@ -243,7 +244,11 @@ int main (int argc, char *argv[]) {
 	 *	Set initial point of the trajectory
 	 */
 	ranlxd(u,2);
-	rho0 = cdfInversion(pdfRho, 0., u[0], 1.e-6);
+	w = u[0];
+	rhoextr[0] = 0.;
+	rhoextr[1] = R;
+
+	rho0 = Zbisection(funcforrho, rhoextr, 1.e-6);
 	eta0 = 2.*pi*(u[1]-.5);
 	x0 = rho0*cos(eta0);
 	y0 = rho0*sin(eta0);
@@ -257,13 +262,21 @@ int main (int argc, char *argv[]) {
 		rho = sqrt(x*x + y*y);
 		eta = argument(x,y);
 
-		ranlxd(u, 4);	/* 4 random real numbers ~ U(0,1) */
+		ranlxd(u, 5);	/* 4 random real numbers ~ U(0,1) */
 	
 		/*
 		 *	Generation of phi and xi with the inversion method (numerically)
 		 */
-		phi	= cdfInversion(pdfPhi, minPhi, u[0], 1.0e-5);
-		xi	= cdfInversion(pdfXi, -minXi, -u[1], -1.0e-7);
+		normPhi = .5/pi/(1. - R*srml*gsl_sf_bessel_I0( rho*srml)*gsl_sf_bessel_K1( R*srml));
+		phi	= cdfInversion(pdfPhi, -pi, u[0], 1.e-3, 1.e-6);
+		
+		b = B(phi);
+		normXi = 2./(m*m - lambda*lambda)*(1. - b*srml*gsl_sf_bessel_K1(b*srml));
+		
+		if(u[4]<.5)
+			xi	= tanh(atanh(lambda/m) + cdfInversion(pdfAtanhXi, 0., .5*u[1], 1.e-3, 1.e-8));
+		else
+			xi	= tanh(atanh(lambda/m) - cdfInversion(pdfAtanhXi, 0., .5*u[1], 1.e-3, 1.e-8));
 	
 		/*
 		 *	Generation of r with inversion method via Lambert W function
@@ -300,12 +313,13 @@ int main (int argc, char *argv[]) {
 			counter++;
 		}
 	}
+	fwrite(seed, sizeof(int), 1, out_traj);
 	for(counter=0; counter<Njumps; counter++)
 		fwrite(pts[counter], sizeof(float), 3, out_traj);
 	
 	fclose(out_traj);
 	
-	printf("%s ended\n",argv[3]);
+	printf("%s --> end\n",argv[3]);
 	exit(EXIT_SUCCESS);
 
 	

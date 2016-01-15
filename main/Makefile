@@ -21,7 +21,7 @@ all: rmxeq mkdep mkxeq rmpmk
 
 MAIN = cylinder # halfstrip infstrip
 
-RANDOM = ranlxs ranlxd  gauss
+RANDOM = ranlxs ranlxd # gauss
 # expo rootexpo gaussalt symexpo symrootexpo
 
 INTEGRATION = integrate methods gaussmom pigreco
@@ -38,8 +38,8 @@ EXTRAS = extras zeros
 
 NUMEROV = numerov
 
-MODULES = $(RANDOM) $(EXTRAS) $(START) $(CLUSTER)
-# $(INTEGRATION) $(SIMULATIONS) $(RUNGEKUTTA) $(NUMEROV)
+MODULES = $(RANDOM) $(EXTRAS) $(START) 
+# $(CLUSTER) $(INTEGRATION) $(SIMULATIONS) $(RUNGEKUTTA) $(NUMEROV)
 
 
 # search path for modules
@@ -63,7 +63,7 @@ LIBPATH =
 
 # scheduling and optimization options (such as -DSSE -DSSE2 -DP4)
  
-CFLAGS = -lm -lgsl -lgslcblas -O -g -DSSE2 -Wall -std=gnu99  #-lcblas
+CFLAGS = -lm -lgsl -lgslcblas -O -g -DSSE4 -Wall -std=gnu99  #-lcblas
  
 
 ############################## do not change ###################################
