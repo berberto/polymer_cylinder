@@ -181,14 +181,18 @@ int main (int argc, char *argv[]) {
   printf("%s --> start\n",argv[3]);
 
 	if(argc < 5){
-		printf("Set average jump length (in units of R), number of jumps and realization counter\n");
+		printf("Please set:\n\
+	1) average jump length (in units of R),\n\
+	2) number of jumps,\n\
+	3) realization counter and\n\
+	4) seed for the random number generator.\n");
 		exit(EXIT_SUCCESS);
 	}
 	
 	char *out_name, *createdir, *dir;
 	FILE *out_traj;
 	
-	int seed;
+	unsigned int seed;
 	int Njumps;
 	int counter;
 	double x0, y0, z0, rho0, eta0;
@@ -200,7 +204,7 @@ int main (int argc, char *argv[]) {
 	double u[5]; /* 5 random numbers uniformly distributed in (0,1) */	
 	
 	/* Initialization of the randomizer */
-	seed = atoi(argv[4]);
+	seed = (unsigned int)atoi(argv[4]);
 	srand(seed);
 	rlxd_init(1,rand());
 
@@ -215,12 +219,10 @@ int main (int argc, char *argv[]) {
 		lambdaextr[1] = m - 1.e-10;
 	lambda = Zbisection(funcforlambda, lambdaextr, 1.e-6);
 	srml = sqrt(m*m - lambda*lambda);
-	return 0;
 	pts = malloc((Njumps)*sizeof(long int));
 	for(counter=0; counter<Njumps; counter++)
 		pts[counter] = malloc(3*sizeof(float));
-	
-	/* printf("\nm=%lf\t\tlambda = %lf\n\n", m, lambda); */	
+
 	
 	/* Set extremes for phi and xi = cos(theta) */
 	minPhi = -pi;
@@ -235,9 +237,10 @@ int main (int argc, char *argv[]) {
 	sprintf(dir, "output/avjmp_%.3lf", atof(argv[1]));
 	sprintf(createdir, "mkdir -p %s", dir);
 	sprintf(out_name, "%s/rep_%d.dat", dir, atoi(argv[3]));
-
 	system(createdir);
+	
 	out_traj = fopen(out_name,"w");
+	
 	
 	/*
 	 *	Set initial point of the trajectory
@@ -312,7 +315,7 @@ int main (int argc, char *argv[]) {
 			counter++;
 		}
 	}
-	fwrite(seed, sizeof(int), 1, out_traj);
+	fwrite(&seed, sizeof(int), 1, out_traj);
 	for(counter=0; counter<Njumps; counter++)
 		fwrite(pts[counter], sizeof(float), 3, out_traj);
 	

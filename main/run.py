@@ -24,11 +24,26 @@ Njumps = [10000]
 
 
 
-avgjump = [1.95, 1.82, 1.675, 1.522]
-#avgjump = [1.362, 1.195, 1.033, 0.877]
-#avgjump=[0.737, 0.613, 0.508, 0.42]
-#avgjump=[0.347, 0.288, 0.238, 0.197]
-#avgjump=[0.161, 0.136, 0.112, 0.09]
+avgjump = [1.95]
+avgjump = [1.82]
+avgjump = [1.675]
+avgjump = [1.522]
+avgjump = [1.362]
+avgjump = [1.195]
+avgjump = [1.033]
+avgjump = [0.877]
+avgjump = [0.737]
+avgjump = [0.613]
+avgjump = [0.508]
+avgjump = [0.42]
+avgjump = [0.347]
+avgjump = [0.288]
+avgjump = [0.238]
+avgjump = [0.197]
+avgjump = [0.161]
+avgjump = [0.136]
+avgjump = [0.112]
+avgjump = [0.09]
 
 arg_list = product(avgjump,Njumps,rep)
 
