@@ -5,7 +5,7 @@ from random import choice
 
 def run(arg):
     #arg is a string with: dir-results, run number, seed
-    s = [choice([1,2,3,4,5,6,7,8,9]) for i in range(10)]
+    s = [choice([1,2,3,4,5,6,7,8,9]) for i in range(6)]
     seed = ''.join([ str(n) for n in s])
     #print './cylinder ' + arg + ' ' + seed
     os.system('./cylinder ' + arg + ' ' + seed)
@@ -21,9 +21,6 @@ os.system('make')
 nreps=10000
 rep = [r for r in range(nreps)]
 Njumps = [10000]
-
-
-
 avgjump = [1.95]
 avgjump = [1.82]
 avgjump = [1.675]
