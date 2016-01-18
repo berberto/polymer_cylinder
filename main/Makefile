@@ -70,7 +70,7 @@ CFLAGS = -lm -lgsl -lgslcblas -O -g -DSSE4 -Wall -std=gnu99  #-lcblas
 
 SHELL=/bin/bash
 
-CC=gcc
+CC=mpicc #gcc
 
 PGMS= $(MAIN) $(MODULES)
 
