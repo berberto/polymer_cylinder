@@ -222,7 +222,8 @@ int main (int argc, char *argv[]) {
 	pts = malloc((Njumps)*sizeof(long int));
 	for(counter=0; counter<Njumps; counter++)
 		pts[counter] = malloc(3*sizeof(float));
-
+	
+	/* printf("\nm=%lf\t\tlambda = %lf\n\n", m, lambda); */	
 	
 	/* Set extremes for phi and xi = cos(theta) */
 	minPhi = -pi;
@@ -237,10 +238,9 @@ int main (int argc, char *argv[]) {
 	sprintf(dir, "output/avjmp_%.3lf", atof(argv[1]));
 	sprintf(createdir, "mkdir -p %s", dir);
 	sprintf(out_name, "%s/rep_%d.dat", dir, atoi(argv[3]));
+
 	system(createdir);
-	
 	out_traj = fopen(out_name,"w");
-	
 	
 	/*
 	 *	Set initial point of the trajectory

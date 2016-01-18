@@ -51,7 +51,7 @@ VPATH = $(MDIR)/random:$(MDIR)/start:$(MDIR)/extras:$(MDIR)/integration:$(MDIR)/
 
 # additional include directories
 
-INCPATH = ../include  /usr/include /usr/include/gsl  /usr/include/igraph  /usr/local/include/igraph
+INCPATH = /u/shared/modules/libraries ../include  /usr/include /usr/include/gsl  # /usr/include/igraph  /usr/local/include/igraph
 
 
 # additional libraries to be included 
