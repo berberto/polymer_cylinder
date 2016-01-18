@@ -9,6 +9,7 @@
 #include "random.h"
 #include <gsl/gsl_sf_lambert.h>
 #include <gsl/gsl_sf_bessel.h>
+#include <mpi.h>
 
 
 double pi = 4.0*atan(1.);
@@ -178,21 +179,42 @@ double argument (double x, double y){
  
 int main (int argc, char *argv[]) {
 
-  printf("%s --> start\n",argv[3]);
+	/* Initialize the MPI environment. The two arguments to MPI Init are not
+	 * currently used by MPI implementations, but are there in case future
+	 * implementations might need the arguments. */
+	MPI_Init(NULL, NULL);
 
-	if(argc < 5){
-		printf("Please set:\n\
-	1) average jump length (in units of R),\n\
-	2) number of jumps,\n\
-	3) realization counter and\n\
-	4) seed for the random number generator.\n");
+	/* Get the number of processes */
+	int Nruns;
+	MPI_Comm_size(MPI_COMM_WORLD, &Nruns);
+
+	/* Get the rank of the process */
+	int run;
+	MPI_Comm_rank(MPI_COMM_WORLD, &run);
+
+
+	if(argc < 3){
+		if(run == 0)
+			printf("Please set:\n\
+	1) average jump length (in units of R);\n\
+	2) number of jumps.\n");
+		MPI_Finalize();
 		exit(EXIT_SUCCESS);
 	}
 	
-	char *out_name, *createdir, *dir;
-	FILE *out_traj;
+
+	/* Seeds of the runs */
+	int seed;
+	FILE *file_seeds;
+	file_seeds=fopen("/dev/urandom","rb");
+	fread(&seed, sizeof(int), 1, file_seeds);
+
+	seed = abs(seed);
+	printf("%d --> start.\t%d\n", run, seed);
 	
-	unsigned int seed;
+	char *out_name, *createdir, *dir, *name_seeds;
+	FILE *out_traj, *out_seeds;
+	
 	int Njumps;
 	int counter;
 	double x0, y0, z0, rho0, eta0;
@@ -204,7 +226,6 @@ int main (int argc, char *argv[]) {
 	double u[5]; /* 5 random numbers uniformly distributed in (0,1) */	
 	
 	/* Initialization of the randomizer */
-	seed = (unsigned int)atoi(argv[4]);
 	srand(seed);
 	rlxd_init(1,rand());
 
@@ -232,15 +253,19 @@ int main (int argc, char *argv[]) {
 	/*
 	 *	Open output files
 	 */
+	name_seeds = malloc(100*sizeof(char));
 	out_name = malloc(100*sizeof(char));
 	dir = malloc(100*sizeof(char));
 	createdir = malloc(100*sizeof(char));
 	sprintf(dir, "output/avjmp_%.3lf", atof(argv[1]));
 	sprintf(createdir, "mkdir -p %s", dir);
-	sprintf(out_name, "%s/rep_%d.dat", dir, atoi(argv[3]));
+	sprintf(name_seeds, "%s/init_seeds.dat", dir);
+	sprintf(out_name, "%s/rep_%d.dat", dir, run);
 
 	system(createdir);
 	out_traj = fopen(out_name,"w");
+	out_seeds = fopen(name_seeds, "a");
+		fprintf(out_seeds, "%d\t%d\n", run, seed);
 	
 	/*
 	 *	Set initial point of the trajectory
@@ -320,9 +345,13 @@ int main (int argc, char *argv[]) {
 		fwrite(pts[counter], sizeof(float), 3, out_traj);
 	
 	fclose(out_traj);
+	fclose(out_seeds);
 	
-	printf("%s --> end\n",argv[3]); fflush(stdout);
-	exit(EXIT_SUCCESS);
+	printf("%d --> end\n",run); fflush(stdout);
 
+	/* Finalize the MPI environment. No more MPI calls can be made after this */
+	MPI_Finalize();
+	
+	exit(EXIT_SUCCESS);
 	
 }
