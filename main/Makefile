@@ -63,14 +63,14 @@ LIBPATH =
 
 # scheduling and optimization options (such as -DSSE -DSSE2 -DP4)
  
-CFLAGS = -lm -lgsl -lgslcblas -O -g -DSSE4 -Wall -std=gnu99  #-lcblas
+CFLAGS = -lm -lgsl -lgslcblas -O -g -DSSE4 -Wall # -std=gnu99  #-lcblas
  
 
 ############################## do not change ###################################
 
 SHELL=/bin/bash
 
-CC=gcc
+CC=mpicc #gcc
 
 PGMS= $(MAIN) $(MODULES)
 
