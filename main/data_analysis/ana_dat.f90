@@ -5,21 +5,23 @@ program ana_dat
   integer, parameter :: nreps = 10000
   integer, parameter :: npoints = 10000
   integer :: seed
-  integer :: f
+  integer :: f,i
   real(4) :: tmp(3*npoints)
   real(4) :: points(npoints,3)
   real(4) :: avgjmp
   character(100) :: arg1,main_input_dir
-  
+  real(4) :: avg_l(npoints-1)
 
   call getarg(1,arg1)
   read(arg1,*), avgjmp
 
 
-  main_input_dir = '../output/avjmp_'//trim(arg1)//'/'
+  main_input_dir = '/media/usb/data_cylinder/avjmp_'//trim(arg1)//'/'
   !main_output_dir = '../output/'
+
+
+  avg_l = 0.
   
-  stop
   do f = 1,nreps
      
      !print*, trim(main_output_dir)//'rep_'//trim( int_2_str(f) )//'.dat'
@@ -33,7 +35,15 @@ program ana_dat
 
      points = reshape(tmp,[npoints,3],order=[2,1])
 
+     do i =1,npoints-1
+        avg_l(i) = avg_l(i) + norm2( points(i+1,:) - points(i,:) ) 
+     end do
   end do
+
+  do i=1,npoints-1
+     write(10,*), avg_l(i)/nreps
+  end do
+
 
 contains
   
