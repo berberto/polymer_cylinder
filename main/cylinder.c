@@ -27,12 +27,13 @@ double normPhi, normXi, normRho, b;	/* normalization constants */
 double w;
 
 
+
 /*
  *	Irregular Bessel functions K0 and K1 defined for big arguments in order to
  *	avoid underflow
  */
 double alt_bessel_K0 (double x){
-	if (x < 200.)
+	if (x < 500.)
 		return gsl_sf_bessel_K0(x);
 		
 	else
@@ -40,7 +41,7 @@ double alt_bessel_K0 (double x){
 }
 
 double alt_bessel_K1 (double x){
-	if (x < 200.)
+	if (x < 500.)
 		return gsl_sf_bessel_K1(x);
 		
 	else
@@ -231,7 +232,7 @@ int main (int argc, char *argv[]) {
 	fread(&seed, sizeof(int), 1, file_seeds);
 
 	seed = abs(seed);
-	printf("%d --> start.\t%d\n", run, seed);
+	printf("%d --> start.\t%d\n", atoi( argv[3] ), seed);
 	
 	char *out_name, *createdir, *dir, *name_seeds;
 	FILE *out_traj, *out_seeds;
@@ -265,7 +266,7 @@ int main (int argc, char *argv[]) {
 	for(counter=0; counter<Njumps; counter++)
 		pts[counter] = malloc(3*sizeof(float));
 	
-	 printf("\nm=%lf\t\tlambda = %lf\n\n", m, lambda);
+	/* printf("\nm=%lf\t\tlambda = %lf\n\n", m, lambda); */
 	
 	/* Set extremes for phi and xi = cos(theta) */
 	minPhi = -pi;
@@ -281,12 +282,12 @@ int main (int argc, char *argv[]) {
 	sprintf(dir, "output/avjmp_%.3e", atof(argv[1]));
 	sprintf(createdir, "mkdir -p %s", dir);
 	sprintf(name_seeds, "%s/init_seeds.dat", dir);
-	sprintf(out_name, "%s/rep_%d.dat", dir, run);
+	sprintf(out_name, "%s/rep_%d.dat", dir, atoi(argv[3]));
 
 	system(createdir);
 	out_traj = fopen(out_name,"w");
 	out_seeds = fopen(name_seeds, "a");
-		fprintf(out_seeds, "%d\t%d\n", run, seed);
+	fprintf(out_seeds, "%d\t%d\n", atoi(argv[3]), seed);
 	
 	/*
 	 *	Set initial point of the trajectory
@@ -306,19 +307,21 @@ int main (int argc, char *argv[]) {
 	
 	counter=0;
 	while(counter<Njumps) {
-	
+	        
 		rho = sqrt(x*x + y*y);
 		eta = argument(x,y);
-
+                
 		ranlxd(u, 5);	/* 4 random real numbers ~ U(0,1) */
 	
 		/*
 		 *	Generation of phi and xi with the inversion method (numerically)
 		 */
-		normPhi = .5/pi/(1. - R*srml*gsl_sf_bessel_I0_scaled(rho*srml)*gsl_sf_bessel_K1_scaled( R*srml));
+		normPhi = .5/pi/(1. - R*srml*exp(-srml*(R-rho) )*gsl_sf_bessel_I0_scaled(rho*srml)*gsl_sf_bessel_K1_scaled( R*srml));
+		
 		phi	= cdfInversion(pdfPhi, -pi, u[0], 1.e-3, 1.e-6);
 		
 		b = B(phi);
+   
 		normXi = 2./(m*m - lambda*lambda)*(1. - b*srml*alt_bessel_K1(b*srml));
 		
 		if(u[4]<.5)
@@ -360,6 +363,9 @@ int main (int argc, char *argv[]) {
 			pts[counter][2] = (float)z;
 			counter++;
 		}
+
+		
+
 	}
 	fwrite(&seed, sizeof(int), 1, out_traj);
 	for(counter=0; counter<Njumps; counter++)
@@ -368,7 +374,7 @@ int main (int argc, char *argv[]) {
 	fclose(out_traj);
 	fclose(out_seeds);
 	
-	printf("%d --> end\n",run); fflush(stdout);
+	printf("%d --> end\n",atoi(argv[3])); fflush(stdout);
 
 	/* Finalize the MPI environment. No more MPI calls can be made after this */
 	MPI_Finalize();
