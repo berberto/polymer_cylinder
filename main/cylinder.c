@@ -27,6 +27,26 @@ double normPhi, normXi, normRho, b;	/* normalization constants */
 double w;
 
 
+/*
+ *	Irregular Bessel functions K0 and K1 defined for big arguments in order to
+ *	avoid underflow
+ */
+double alt_bessel_K0 (double x){
+	if (x < 200.)
+		return gsl_sf_bessel_K0(x);
+		
+	else
+		return 0.;
+}
+
+double alt_bessel_K1 (double x){
+	if (x < 200.)
+		return gsl_sf_bessel_K1(x);
+		
+	else
+		return 0.;
+}
+
 
 /*
  * Recursive auxiliary function for adaptiveSimpsons() function below
@@ -64,7 +84,8 @@ double adaptiveSimpsons(double (*f)(double),   		/* ptr to function */
  *	Function whose first zero is the value of lambda
  */
 double funcforlambda (double var){
-	return  var*gsl_sf_bessel_J1(var*R) * gsl_sf_bessel_K0(R*sqrt(m*m - var*var)) - sqrt(m*m - var*var) * gsl_sf_bessel_J0(var*R) * gsl_sf_bessel_K1( R*sqrt(m*m - var*var));
+	double u = sqrt(m*m - var*var);
+	return  var*gsl_sf_bessel_J1(var*R) - u * gsl_sf_bessel_J0(var*R) * gsl_sf_bessel_K1_scaled(R*u)/gsl_sf_bessel_K0_scaled(R*u);
 }
 
 
@@ -80,7 +101,7 @@ double B (double phi){
  *  Distribution for the azimutal angle, phi
  */
 double pdfPhi (double phi){
-	return (1. - B(phi)*srml*gsl_sf_bessel_K1(B(phi)*srml))*normPhi;
+	return (1. - B(phi)*srml*alt_bessel_K1(B(phi)*srml))*normPhi;
 }
 
 
@@ -244,7 +265,7 @@ int main (int argc, char *argv[]) {
 	for(counter=0; counter<Njumps; counter++)
 		pts[counter] = malloc(3*sizeof(float));
 	
-	/* printf("\nm=%lf\t\tlambda = %lf\n\n", m, lambda); */	
+	 printf("\nm=%lf\t\tlambda = %lf\n\n", m, lambda);
 	
 	/* Set extremes for phi and xi = cos(theta) */
 	minPhi = -pi;
@@ -294,11 +315,11 @@ int main (int argc, char *argv[]) {
 		/*
 		 *	Generation of phi and xi with the inversion method (numerically)
 		 */
-		normPhi = .5/pi/(1. - R*srml*gsl_sf_bessel_I0( rho*srml)*gsl_sf_bessel_K1( R*srml));
+		normPhi = .5/pi/(1. - R*srml*gsl_sf_bessel_I0_scaled(rho*srml)*gsl_sf_bessel_K1_scaled( R*srml));
 		phi	= cdfInversion(pdfPhi, -pi, u[0], 1.e-3, 1.e-6);
 		
 		b = B(phi);
-		normXi = 2./(m*m - lambda*lambda)*(1. - b*srml*gsl_sf_bessel_K1(b*srml));
+		normXi = 2./(m*m - lambda*lambda)*(1. - b*srml*alt_bessel_K1(b*srml));
 		
 		if(u[4]<.5)
 			xi	= tanh(atanh(lambda/m) + cdfInversion(pdfAtanhXi, 0., .5*u[1], 1.e-3, 1.e-8));
