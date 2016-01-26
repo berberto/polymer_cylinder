@@ -19,7 +19,7 @@ all: rmxeq mkdep mkxeq rmpmk
 
 # main programs and required modules 
 
-MAIN = cylinder # halfstrip infstrip
+MAIN = checkbessel cylinder # halfstrip infstrip
 
 RANDOM = ranlxs ranlxd # gauss
 # expo rootexpo gaussalt symexpo symrootexpo
