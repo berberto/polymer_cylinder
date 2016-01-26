@@ -257,7 +257,7 @@ int main (int argc, char *argv[]) {
 	out_name = malloc(100*sizeof(char));
 	dir = malloc(100*sizeof(char));
 	createdir = malloc(100*sizeof(char));
-	sprintf(dir, "output/avjmp_%.3lf", atof(argv[1]));
+	sprintf(dir, "output/avjmp_%.3e", atof(argv[1]));
 	sprintf(createdir, "mkdir -p %s", dir);
 	sprintf(name_seeds, "%s/init_seeds.dat", dir);
 	sprintf(out_name, "%s/rep_%d.dat", dir, run);
