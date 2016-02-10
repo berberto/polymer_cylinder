@@ -58,7 +58,7 @@ CFLAGS = -Wall -O
 
 SHELL=/bin/bash
 
-CC=gcc
+CC=mpicc # gcc
 
 PGMS= $(MAIN) $(MODULES)
 

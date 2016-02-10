@@ -19,7 +19,7 @@ all: rmxeq mkdep mkxeq rmpmk
 
 # main programs and required modules 
 
-MAIN = cylinder # halfstrip infstrip
+MAIN = checkbessel cylinder # halfstrip infstrip
 
 RANDOM = ranlxs ranlxd # gauss
 # expo rootexpo gaussalt symexpo symrootexpo
@@ -51,12 +51,12 @@ VPATH = $(MDIR)/random:$(MDIR)/start:$(MDIR)/extras:$(MDIR)/integration:$(MDIR)/
 
 # additional include directories
 
-INCPATH = /u/shared/modules/libraries ../include  /usr/include /usr/include/gsl  # /usr/include/igraph  /usr/local/include/igraph
+INCPATH = ../include  /usr/include /usr/include/gsl  # /usr/include/igraph  /usr/local/include/igraph  /u/shared/modules/libraries
 
 
 # additional libraries to be included 
 
-LIBS = m  gsl  # igraph
+LIBS = m  gsl gslcblas  # igraph
 
 LIBPATH = 
 
@@ -70,7 +70,7 @@ CFLAGS = -lm -lgsl -lgslcblas -O -g -DSSE4 -Wall # -std=gnu99  #-lcblas
 
 SHELL=/bin/bash
 
-CC=mpicc #gcc
+CC= mpicc #gcc
 
 PGMS= $(MAIN) $(MODULES)
 
