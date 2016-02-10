@@ -14,21 +14,22 @@ program ana_dat
   real(4) :: avgjmp, normt,avg_Ree,Ree,Rcm(3),avg_Rg2
   character(100) :: arg1,main_input_dir
   real(4) :: avg_L(npoints-1),& !cumulative total length
-       avg_Lz(npoints-1),& !cumulative jump on z
-       tot_contour,&
-       avg_dz(npoints-1),&  !z jump
-       avg_dl(npoints-1) !jump in space
+             avg_Lz(npoints-1),& !cumulative jump on z
+             avg_Ree(npoints-1),& !end-to-end up to the n-th point
+             avg_Rg2(npoints-1),& !gyradius up to the n-th point
+             avg_dz(npoints-1),&  !z jump
+             avg_dl(npoints-1),& !jump in space
 
   call getarg(1,arg1)
   read(arg1,*), avgjmp
-
-  main_input_dir = '/scratch/madorisi/results/polymers/avjmp_'//trim(arg1)//'/'
+  main_input_dir = '/media/USB-HDD/data_cylinder/avjmp_'//trim(arg1)//'/'
+  !main_input_dir = '/scratch/madorisi/results/polymers/avjmp_'//trim(arg1)//'/'
   !main_output_dir = '../output/'
   print*, 'working on ',trim( main_input_dir )
   
 
-  avg_Ree = 0. !scalar
-  avg_Rg2 = 0. !scalar
+  avg_Ree = 0. !array
+  avg_Rg2 = 0. !array
   avg_L = 0. ! array
   avg_Lz = 0. !array
   avg_dz = 0.
@@ -38,6 +39,8 @@ program ana_dat
   
   
   do f = 0,nreps-1
+     print*, f
+     !check file
      !call stat(trim(main_input_dir)//'rep_'//trim( int_2_str(f) )//'.dat', values) 
      !fsize=values(8)
      
@@ -73,10 +76,13 @@ program ana_dat
      ! print*, tot_contour, avg_L(npoints-1)
      ! stop
 
-     !average end to end distance 
-     avg_Ree = avg_Ree + norm2(  points(1,:) - points(npoints,:)  )/nreps
+     
+     !avg_Ree = avg_Ree + Ree(points)!norm2(  points(1,:) - points(npoints,:)  )/nreps
      !center of mass position
-     Rcm = sum( points,dim=1 )/npoints 
+     !Rcm = sum( points,dim=1 )/npoints 
+     
+     !average end to end distance 
+     
      !gyration radius
      avg_Rg2 = avg_Rg2 + Rg2(points,Rcm) / nreps
      !contour length up to n-th point
@@ -196,6 +202,47 @@ contains
     end do
     
   end function Lz
+
+  function nth_Ree(points)
+    implicit none
+    !compute the jump along z 
+    !Lz(i): jump on z up to the i-th jump
+
+    real, intent(in) :: points(:,:)
+    real :: Ree(size(points,1)-1)
+    
+    Ree = 0.
+        
+    do i = 1,npoints-1
+       Ree(i) = norm2(  points(i+1,:) - points(1,:)  )
+    end do
+    
+  end function nth_Ree
+
+  function nth_Rg2(points)
+    implicit none
+
+    real, intent(in) :: points(:,:)
+    real :: Rg2(npoints-1),Rcm(3)
+    integer :: np,k
+    
+
+    do np=2,size(points,1)
+       
+       Rcm = sum( points(1:np,:),dim=1 ) / real(np)
+       Rg2 = 0.
+       do k=1,np
+          Rg2(np-1) = Rg2(np-1) + dot_product(points(k,:),points(k,:))
+       end do
+
+       Rg2(np-1) = Rg2(np-1)/real(np)
+       Rg2(np-1) = Rg2(np-1) - dot_product(Rcm,Rcm)
+       
+    end do
+    
+
+  end function Rg2
+
   
   function dz(points)
     implicit none
@@ -212,6 +259,7 @@ contains
     end do
     
   end function dz
+  
   
   function dl(points)
     implicit none
@@ -253,7 +301,7 @@ contains
     close(file_results)
 
 
-    inquire (file='/scratch/madorisi/results/polymers/results_Ree_Rg.dat', exist=exist)
+    inquire (file='./results/polymers/results_Ree_Rg.dat', exist=exist)
     if (exist) then
        open(newunit=file_results, file='/scratch/madorisi/results/polymers/results_Ree_Rg.dat',&
             status="old", position="append", action="write")
@@ -261,7 +309,7 @@ contains
        close(file_results)
     else
        !create file and write the first time
-       open(newunit=file_results, file='/scratch/madorisi/results/polymers/results_Ree_Rg.dat', status="new", action="write")
+       open(newunit=file_results, file='./results/polymers/results_Ree_Rg.dat', status="new", action="write")
        write(file_results,*), '# avgRg2 ','avgRee ','avgL ','avgjmp'
        write(file_results,*), avg_Rg2, avg_Ree, avg_L(npoints-1), trim(label)!avgjmp
        close(file_results)
