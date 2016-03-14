@@ -296,7 +296,8 @@ int main (int argc, char *argv[]) {
 	w = u[0];
 	rhoextr[0] = 0.;
 	rhoextr[1] = R;
-
+	normRho = R * gsl_sf_bessel_J1(lambda*R);
+	
 	rho0 = Zbisection(funcforrho, rhoextr, 1.e-6);
 	eta0 = 2.*pi*(u[1]-.5);
 	x0 = rho0*cos(eta0);
