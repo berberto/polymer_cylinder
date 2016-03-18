@@ -1,0 +1,171 @@
+(* Content-type: application/vnd.wolfram.mathematica *)
+
+(*** Wolfram Notebook File ***)
+(* http://www.wolfram.com/nb *)
+
+(* CreatedBy='Mathematica 9.0' *)
+
+(*CacheID: 234*)
+(* Internal cache information:
+NotebookFileLineBreakTest
+NotebookFileLineBreakTest
+NotebookDataPosition[       157,          7]
+NotebookDataLength[      5886,        162]
+NotebookOptionsPosition[      5440,        142]
+NotebookOutlinePosition[      5805,        158]
+CellTagsIndexPosition[      5762,        155]
+WindowFrame->Normal*)
+
+(* Beginning of Notebook Content *)
+Notebook[{
+Cell[BoxData[
+ RowBox[{
+  RowBox[{
+  "SetDirectory", "[", "\"\<~/Projects/Paths/control/main/output/genf_z\>\"", 
+   "]"}], ";"}]], "Input",
+ CellChangeTimes->{{3.6672821332898903`*^9, 3.667282134869557*^9}}],
+
+Cell[BoxData[{
+ RowBox[{
+  RowBox[{"inputs", "=", 
+   RowBox[{
+    RowBox[{"{", 
+     RowBox[{"Import", "[", "\"\<out_files\>\"", "]"}], "}"}], "//", 
+    "Flatten"}]}], ";"}], "\[IndentingNewLine]", 
+ RowBox[{
+  RowBox[{"pars", "=", 
+   RowBox[{
+    RowBox[{"Import", "[", "\"\<pars.dat\>\"", "]"}], "//", "Flatten"}]}], 
+  ";"}]}], "Input",
+ CellChangeTimes->{{3.667282136920414*^9, 3.667282141630629*^9}, {
+   3.667282282369413*^9, 3.6672822884683447`*^9}, {3.6672825886061563`*^9, 
+   3.667282591980061*^9}, {3.6672827849582376`*^9, 3.6672827949430857`*^9}, {
+   3.667282830383769*^9, 3.667282832507223*^9}, {3.66728288074091*^9, 
+   3.6672828995770082`*^9}, {3.6672832233379793`*^9, 3.667283238299384*^9}, {
+   3.667283372628995*^9, 3.6672833758744383`*^9}, {3.66728352290588*^9, 
+   3.6672836275091057`*^9}, 3.667283691066656*^9, {3.667283743727318*^9, 
+   3.667283784384112*^9}, {3.66728385046626*^9, 3.66728386435121*^9}, {
+   3.667285141720607*^9, 3.667285142739315*^9}}],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+ RowBox[{"pars", "[", 
+  RowBox[{"[", "15", "]"}], "]"}]], "Input",
+ CellChangeTimes->{{3.667286044332694*^9, 3.667286063967504*^9}}],
+
+Cell[BoxData["0.01133`"], "Output",
+ CellChangeTimes->{{3.66728605100777*^9, 3.667286064362503*^9}}]
+}, Open  ]],
+
+Cell[BoxData[{
+ RowBox[{"ClearAll", ";"}], "\[IndentingNewLine]", 
+ RowBox[{
+  RowBox[{"Clear", "[", 
+   RowBox[{"cumsVSavjmp", ",", "plots"}], "]"}], ";"}], "\[IndentingNewLine]", 
+ RowBox[{
+  RowBox[{"cumsVSavjmp", "=", 
+   RowBox[{"{", "}"}]}], ";"}], "\[IndentingNewLine]", 
+ RowBox[{
+  RowBox[{"plots", "=", 
+   RowBox[{"{", "}"}]}], ";"}], "\[IndentingNewLine]", 
+ RowBox[{"Do", "[", "\[IndentingNewLine]", 
+  RowBox[{
+   RowBox[{
+    RowBox[{"Clear", "[", 
+     RowBox[{"cums", ",", "mean", ",", "var"}], "]"}], ";", 
+    "\[IndentingNewLine]", 
+    RowBox[{"cums", "=", 
+     RowBox[{"{", 
+      RowBox[{
+       RowBox[{"pars", "[", 
+        RowBox[{"[", "i", "]"}], "]"}], ",", "mean", ",", "var"}], "}"}]}], 
+    ";", "\[IndentingNewLine]", 
+    RowBox[{"data", "=", 
+     RowBox[{"Import", "[", 
+      RowBox[{"inputs", "[", 
+       RowBox[{"[", "i", "]"}], "]"}], "]"}]}], ";", "\[IndentingNewLine]", 
+    RowBox[{"smin", "=", 
+     RowBox[{
+      RowBox[{"First", "[", "data", "]"}], "[", 
+      RowBox[{"[", "1", "]"}], "]"}]}], ";", "\[IndentingNewLine]", 
+    RowBox[{"smax", "=", 
+     RowBox[{
+      RowBox[{"Last", "[", "data", "]"}], "[", 
+      RowBox[{"[", "1", "]"}], "]"}]}], ";", "\[IndentingNewLine]", 
+    RowBox[{"genfexp", "=", 
+     RowBox[{
+      RowBox[{"mean", "*", "s"}], "+", 
+      RowBox[{
+       RowBox[{"1", "/", "2"}], "*", "var", "*", 
+       SuperscriptBox["s", "2"]}]}]}], ";", "\[IndentingNewLine]", 
+    RowBox[{"cumsVSavjmp", "=", 
+     RowBox[{"Append", "[", 
+      RowBox[{"cumsVSavjmp", ",", " ", 
+       RowBox[{"cums", "/.", 
+        RowBox[{"FindFit", "[", 
+         RowBox[{"data", ",", "genfexp", ",", 
+          RowBox[{"{", 
+           RowBox[{"mean", ",", "var"}], "}"}], ",", "s"}], "]"}]}]}], 
+      "]"}]}], ";", "\[IndentingNewLine]", 
+    RowBox[{"plots", "=", 
+     RowBox[{"Append", "[", 
+      RowBox[{"plots", ",", 
+       RowBox[{"Show", "[", 
+        RowBox[{
+         RowBox[{"ListPlot", "[", 
+          RowBox[{"data", ",", 
+           RowBox[{"Filling", "\[Rule]", "Axis"}], ",", 
+           RowBox[{"Joined", "\[Rule]", "True"}], ",", 
+           RowBox[{"PlotStyle", "\[Rule]", "Red"}]}], "]"}], ",", 
+         RowBox[{"Plot", "[", 
+          RowBox[{"genfexp", ",", 
+           RowBox[{"{", 
+            RowBox[{"s", ",", "smin", ",", "smax"}], "}"}]}], "]"}]}], 
+        "]"}]}], "]"}]}], ";"}], "\[IndentingNewLine]", ",", 
+   RowBox[{"{", 
+    RowBox[{"i", ",", 
+     RowBox[{"{", "5", "}"}]}], "}"}]}], "]"}]}], "Input",
+ CellChangeTimes->{{3.667281665441682*^9, 3.667281809511897*^9}, {
+  3.667281905710928*^9, 3.667282090244317*^9}, {3.6672823101038437`*^9, 
+  3.667282341756043*^9}, {3.667282379848756*^9, 3.667282413562379*^9}, {
+  3.667282502197791*^9, 3.667282605754427*^9}, {3.667282776667341*^9, 
+  3.6672827779244833`*^9}, {3.667282836795024*^9, 3.667282839291548*^9}, {
+  3.667282908819446*^9, 3.667282944696698*^9}, {3.667283097974094*^9, 
+  3.667283218915245*^9}, {3.6672838154506073`*^9, 3.6672838210408773`*^9}, {
+  3.6672838822024508`*^9, 3.667283940427326*^9}, {3.6672840121149273`*^9, 
+  3.6672840129700003`*^9}, {3.667284056252459*^9, 3.667284165342864*^9}, {
+  3.667285680506385*^9, 3.667285750447187*^9}, {3.6672857875254593`*^9, 
+  3.6672858026178017`*^9}, {3.667285844976362*^9, 3.667285895455922*^9}, {
+  3.66728598079807*^9, 3.667285987210807*^9}, {3.66728607024188*^9, 
+  3.667286109863768*^9}}]
+},
+WindowSize->{1918, 985},
+WindowMargins->{{0, Automatic}, {Automatic, 0}},
+Magnification:>1.5 Inherited,
+FrontEndVersion->"9.0 for Linux x86 (64-bit) (February 7, 2013)",
+StyleDefinitions->"Default.nb"
+]
+(* End of Notebook Content *)
+
+(* Internal cache information *)
+(*CellTagsOutline
+CellTagsIndex->{}
+*)
+(*CellTagsIndex
+CellTagsIndex->{}
+*)
+(*NotebookFileOutline
+Notebook[{
+Cell[557, 20, 208, 5, 45, "Input"],
+Cell[768, 27, 980, 20, 75, "Input"],
+Cell[CellGroupData[{
+Cell[1773, 51, 147, 3, 45, "Input"],
+Cell[1923, 56, 100, 1, 45, "Output"]
+}, Open  ]],
+Cell[2038, 60, 3398, 80, 435, "Input"]
+}
+]
+*)
+
+(* End of internal cache information *)
