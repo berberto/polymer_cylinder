@@ -69,7 +69,7 @@ double f (double rho){
 		return 0;
 
 	double aux = sqrt(m*m - (s+lambda)*(s+lambda));
-	return rho*rho*gsl_sf_bessel_J0(lambda*rho)*gsl_sf_bessel_K0(aux*rho)*( lambda*gsl_sf_bessel_J1(lambda*rho)*gsl_sf_bessel_I0(aux*rho) + aux*gsl_sf_bessel_J0(lambda*rho)*gsl_sf_bessel_I1(aux*rho) );
+	return rho*rho*gsl_sf_bessel_J0(lambda*rho)*gsl_sf_bessel_K0_scaled(aux*rho)*( lambda*gsl_sf_bessel_J1(lambda*rho)*gsl_sf_bessel_I0_scaled(aux*rho) + aux*gsl_sf_bessel_J0(lambda*rho)*gsl_sf_bessel_I1_scaled(aux*rho) );
 }
 
 
@@ -110,8 +110,8 @@ int main (int argc, char *argv[]) {
 
 	pref = 4.*m*m/R/(gsl_sf_bessel_J0(lambda*R)*gsl_sf_bessel_J0(lambda*R) + gsl_sf_bessel_J1(lambda*R)*gsl_sf_bessel_J1(lambda*R));
 	
-	/*smax = 1.;
-	if(m-lambda < smax) */
+	smax = 1.;
+	if(m-lambda < smax)
 		smax = .1*(m - lambda);
 	smin = -smax;
 	ds = (smax-smin)/1000.;
