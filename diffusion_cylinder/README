@@ -1,0 +1,5 @@
+##compile
+gfortran random.f90 mybessel.f90 module_ana_dat_diffusion.f90 coarse_graining.f90 -o cg.x
+
+##run
+./cg.x avjmp outdir rep
