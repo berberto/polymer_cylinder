@@ -67,6 +67,11 @@ program coarse_grained_diffusion
   dt = 0.001
   tau = avjmp**2/4./D
   
+  print*, tau, lambda
+!  stop
+  
+  write(102,*) avjmp, tau, D, m, lambda
+  
 
   u_z = 2.*lambda
   sqdt = sqrt(2.*D*dt)
@@ -103,29 +108,31 @@ program coarse_grained_diffusion
   rho=rho0
 
   do while (it<=npoints)
+	
+	x_old = x
 
-     x_old = x
+	u_x = -u_z*besj1( lambda*rho )/besj0( lambda*rho )*x(1)/rho
+	u_y = -u_z*besj1( lambda*rho )/besj0( lambda*rho )*x(2)/rho
 
-     u_x = -u_z*besj1( lambda*rho )/besj0( lambda*rho )*x(1)/rho
-     u_y = -u_z*besj1( lambda*rho )/besj0( lambda*rho )*x(2)/rho
-
-     x(1) = x(1) + u_x*D*dt + sqdt*random_normal()
-     x(2) = x(2) + u_y*D*dt + sqdt*random_normal()
-     x(3) = x(3) + u_z*D*dt + sqdt*random_normal()
+10	x(1) = x_old(1) + u_x*D*dt + sqdt*random_normal()
+	x(2) = x_old(2) + u_y*D*dt + sqdt*random_normal()
+	x(3) = x_old(3) + u_z*D*dt + sqdt*random_normal()
 
      rho = sqrt( x(1)**2 + x(2)**2 )
 
+	 if (rho>R) goto 10
+
      !reflect if outside
-     if (rho>R) then
-        
+!     if (rho>R) then
+!        
 !        delta = norm2(x(1:2)) - R
 !        u = x(1:2)/norm2(x(1:2))
 !        x = [(R - delta)*u(1),(R - delta)*u(2), x(3)]
-
-        tmp_x = reflect( x_old, x )
-        x = tmp_x
-        rho = sqrt( x(1)**2 + x(2)**2 )
-     end if
+!
+!        tmp_x = reflect( x_old, x )
+!        x = tmp_x
+!        rho = sqrt( x(1)**2 + x(2)**2 )
+!     end if
      
      t = t + dt !elapsed time  
      
@@ -137,6 +144,8 @@ program coarse_grained_diffusion
      !sample
      if( t > t_save ) then
 
+		!print*, it, t_save
+		
         !print*, points(1,:)
         t = 0 !reset elapsed time
         it = it + 1
@@ -147,6 +156,8 @@ program coarse_grained_diffusion
         !           print*, points(2,:)
  !       write(20,*), points(it,:)
         write(100,*), sqrt( points(it,1)**2 + points(it,2)**2   )
+        write(101,*), t_save, points(it,1), points(it,2)
+        write(103,*) points(it,3)-points(it-1,3)
      end if
      
   end do
