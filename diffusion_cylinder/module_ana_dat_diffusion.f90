@@ -3,7 +3,7 @@ module module_ana_dat_diffusion
   integer, parameter :: nreps = 1
   integer, parameter :: npoints = 2000
   real(8), parameter :: z01=2.4048, R=1.d0, pi=acos(-1.0d0)
-  real(8) :: w, lambda, m
+  real(8) :: w, lambda, m, c
  
 
 contains

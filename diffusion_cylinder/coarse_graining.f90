@@ -8,7 +8,7 @@ program coarse_grained_diffusion
   implicit none
   real(8), parameter :: TOL = 0.000001d0
   !, pi=acos(-1.0d0)
-  real(8) :: x(3), x0(3),x_old(3),tmp_x(3), rho, z, D, dt, u_x, u_y, u_z, ur, sqdt, f, tau, avjmp, tau_arr(npoints), t
+  real(8) :: x(3), x0(3),x_old(3),tmp_x(3), rho, z, D, dt, u_x, u_y, u_z, u_in, u_out, ur, sqdt, f, tau, avjmp, tau_arr(npoints), t
   integer :: it, nit,i
   integer, allocatable :: seed(:)
   real(8) :: rho0, a , b, theta, t_save, u(2)
@@ -55,6 +55,7 @@ program coarse_grained_diffusion
 
   call bisect(f_lambda,a,b,m,TOL,lambda)
 
+	c = sqrt(m**2 - lambda**2)
 
   !print*, m
   !  print*, f_rho(1.d0)
@@ -73,7 +74,10 @@ program coarse_grained_diffusion
   write(102,*) avjmp, tau, D, m, lambda
   
 
-  u_z = 2.*lambda
+  u_in = 2.*D*lambda
+  u_out = 2.*D*c
+  u_z = u_in
+  
   sqdt = sqrt(2.*D*dt)
   
   !L = 0.
@@ -110,31 +114,24 @@ program coarse_grained_diffusion
   do while (it<=npoints)
 	
 	x_old = x
+	
+	if (rho<R) then
+		u_x = -u_in*besj1( lambda*rho )/besj0( lambda*rho )*x(1)/rho
+		u_y = -u_in*besj1( lambda*rho )/besj0( lambda*rho )*x(2)/rho
+	else
+		u_x = -u_out*besek1( c*rho )/besek0( c*rho )*x(1)/rho
+		u_y = -u_out*besek1( c*rho )/besek0( c*rho )*x(2)/rho
+	endif
+	
+	x(1) = x_old(1) + u_x*dt + sqdt*random_normal()
+	x(2) = x_old(2) + u_y*dt + sqdt*random_normal()
+	x(3) = x_old(3) + u_z*dt + sqdt*random_normal()
 
-	u_x = -u_z*besj1( lambda*rho )/besj0( lambda*rho )*x(1)/rho
-	u_y = -u_z*besj1( lambda*rho )/besj0( lambda*rho )*x(2)/rho
+    rho = sqrt( x(1)**2 + x(2)**2 )
 
-10	x(1) = x_old(1) + u_x*D*dt + sqdt*random_normal()
-	x(2) = x_old(2) + u_y*D*dt + sqdt*random_normal()
-	x(3) = x_old(3) + u_z*D*dt + sqdt*random_normal()
-
-     rho = sqrt( x(1)**2 + x(2)**2 )
-
-	 if (rho>R) goto 10
-
-     !reflect if outside
-!     if (rho>R) then
-!        
-!        delta = norm2(x(1:2)) - R
-!        u = x(1:2)/norm2(x(1:2))
-!        x = [(R - delta)*u(1),(R - delta)*u(2), x(3)]
-!
-!        tmp_x = reflect( x_old, x )
-!        x = tmp_x
-!        rho = sqrt( x(1)**2 + x(2)**2 )
-!     end if
-     
-     t = t + dt !elapsed time  
+	if (rho<R) then
+		t = t + dt !elapsed time  
+	endif
      
 
      !it = it + 1
