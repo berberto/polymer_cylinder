@@ -15,7 +15,7 @@
 double pi = 4.0*atan(1.);
 
 double R = 1.;
-double m, lambda, srml; /* srml = sqrt(m^2 - lambda^2) */
+double m, lambda;
 double lambdaextr[2];	/* lower and upper bound for lambda */
 double rhoextr[2];		/* lower and upper bound for rho */
 double normRho;			/* normalization constants */
@@ -43,8 +43,8 @@ double pdfRho (double r) {
 /*
  *	Function whose zero is the the rho sampled according its stationary distribution
  */
-double funcforrho (double rho) {
-	return (.5*rho*rho)*( gsl_sf_bessel_J0(lambda*rho)*gsl_sf_bessel_J0(lambda*rho) + gsl_sf_bessel_J1(lambda*rho)*gsl_sf_bessel_J1(lambda*rho) )/normRho - w;
+double funcforrho (double r) {
+	return (.5*r*r)*( gsl_sf_bessel_J0(lambda*r)*gsl_sf_bessel_J0(lambda*r) + gsl_sf_bessel_J1(lambda*r)*gsl_sf_bessel_J1(lambda*r) )/normRho - w;
 }
 
 
@@ -92,7 +92,7 @@ int main (int argc, char *argv[]) {
 	/*
 	 *	Set parameters
 	 */
-	output	= fopen("transverse_asy.dat", "w");
+	output	= fopen("transverse_asy.dat~", "w");
 	scanf("%d", &Npar);
 	Npoints	= atoi(argv[1]);
 	Npairs	= (int)(Npoints*(Npoints-1)/2);
@@ -107,16 +107,15 @@ int main (int argc, char *argv[]) {
 	for(par=0; par<Npar; par++){
 		
 		scanf("%lf", &avjmp);
-		printf("%lf\t", avjmp);
+ 		printf("%lf\t", avjmp);
 		m = 2./R/avjmp;
 		lambdaextr[0] = 0.000001*m;
 		lambdaextr[1] = 2.41/R; 	/* first zero of J0, plus a bit */
 		if (m < lambdaextr[1])
 			lambdaextr[1] = m - 1.e-10;
 		lambda = Zbisection(funcforlambda, lambdaextr, 1.e-6);
-		srml = sqrt(m*m - lambda*lambda);
-	
-		normRho = (.5*R*R)*(gsl_sf_bessel_J0( lambda*R ) * gsl_sf_bessel_J0(lambda*R) + gsl_sf_bessel_J1(lambda*R) * gsl_sf_bessel_J1(lambda*R));
+		
+		normRho = (.5*R*R)*(gsl_sf_bessel_J0(lambda*R) * gsl_sf_bessel_J0(lambda*R) + gsl_sf_bessel_J1(lambda*R) * gsl_sf_bessel_J1(lambda*R));
 	
 		/*
 		 *	Generate points with the stationary distribution in the circle
@@ -138,7 +137,7 @@ int main (int argc, char *argv[]) {
 		rtranssd = 0.;
 		for (i=0; i<Npoints; i++){
 			for(j=0; j<i; j++){
-				rtrans[counter] = sqrt(rho[i]*rho[i] + rho[j]*rho[j] - 2.*rho[i]*rho[j]*cos(eta[i]*eta[j]));
+				rtrans[counter] = sqrt(rho[i]*rho[i] + rho[j]*rho[j] - 2.*rho[i]*rho[j]*cos(eta[i] - eta[j]));
 				rtransav += rtrans[counter]/Npairs;
 				rtranssd += rtrans[counter]*rtrans[counter]/Npairs;
 				counter++;
@@ -146,7 +145,7 @@ int main (int argc, char *argv[]) {
 		}
 		rtranssd = sqrt(rtranssd - rtransav*rtransav);
 
-		fprintf(output, "%lf\t%lf\t%lf\n", avjmp, rtransav, rtranssd);
+		fprintf(output, "%lf\t%lf\t%lf\t%lf\t%lf\n", avjmp, m, lambda, rtransav, rtranssd);
 		printf("%lf\t%lf\n", rtransav, rtranssd);
 	}
 	
