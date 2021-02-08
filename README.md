@@ -2,7 +2,7 @@
 
 Scripts for simulations and data analysis for
 
-	Adorisio, M., Pezzotta, A., de Mulatier, C., Micheletti, C., & Celani, A. (2017). ''Exact and Efficient Sampling of Conditioned Walks''. ![*J. Stat. Phys.*, **170** (1), 79–100.](https://doi.org/10.1007/s10955-017-1911-y)
+Adorisio, M., Pezzotta, A., de Mulatier, C., Micheletti, C., & Celani, A. ''Exact and Efficient Sampling of Conditioned Walks''. ![*J. Stat. Phys.*, **170** (1), 79–100.](https://link.springer.com/article/10.1007%2Fs10955-017-1911-y) (2017)
 
 *Authors: Matteo Adorisio and Alberto Pezzotta*
 
