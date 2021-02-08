@@ -1,4 +1,4 @@
-## Sampling random walks in confied geometries
+## Sampling random walks in confined geometries
 
 Scripts for simulations and data analysis for
 
